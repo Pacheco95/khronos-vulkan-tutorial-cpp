@@ -10,6 +10,8 @@ set(SOURCES
         src/Window.cpp
         src/Window.hpp
         src/Config.hpp
+        src/Utils.cpp
+        src/Utils.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)

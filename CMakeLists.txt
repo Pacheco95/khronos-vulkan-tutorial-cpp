@@ -3,7 +3,14 @@ project(KhronosVulkanTutorialHpp CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(VULKAN_SDK_DIR "$ENV{VULKAN_SDK}")
-set(SOURCES src/main.cpp)
+set(SOURCES
+        src/main.cpp
+        src/Application.cpp
+        src/Application.hpp
+        src/Window.cpp
+        src/Window.hpp
+        src/Config.hpp
+)
 
 add_compile_definitions(GLFW_VULKAN_STATIC)
 

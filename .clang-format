@@ -1,7 +1,7 @@
 ---
 Language: Cpp
 BasedOnStyle:  Google
-SeparateDefinitionBlocks: Leave
+SeparateDefinitionBlocks: Always
 ColumnLimit: 80
 MaxEmptyLinesToKeep: 2
 PackConstructorInitializers: CurrentLine

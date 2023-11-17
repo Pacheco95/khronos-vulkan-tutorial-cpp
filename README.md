@@ -1,40 +1,49 @@
-# Khronos Tutorial for C++
+# C++ Khronos Tutorial for Linux
 
 Reimplementation of the original
 [C tutorial](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
 using the [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) binding.
 
-For the sake of simplicity and compatibility with the original version, this
-tutorial will not use unique handles nor RAII handles.
-All resources will be created/released by hand.
+General information [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/main/README.md).
 
-**Each [chapter](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp#chapters) will be developed in a separated
-branch**.
-Thus, it will be easier to find a specific change from one chapter to another, and we'll not pollute the code with a
-bunch of macros.
-I also separated branches for each platform.
-The tutorial guide for linux wil be in a branch named `linux/...`.
-**Those branches will never be merged into `main` due to platform differences**.
+# Requirements
 
-> [!IMPORTANT]
-> Use the main branch only as a guidance.
-> The actual implementations will be in separated branches for each platform for each chapter.
+- C++17 compiler. I used the `Ubuntu clang version 17.0.5 (++20231114093837+98bfdac5ce82-1~exp1~20231114093938.66)` but
+  16 should work fine.
+- CMake 3.22 or higher. I used `3.26.4`.
+- A build system. I'm using [Ninja](https://ninja-build.org/), but you can use Unix Makefiles if you want.
 
-I did the entire tutorial on linux, thus I'll only implement for the linux branch, but you probably will be able to
-build for other platforms without much effort.
-Feel free to send PRs for other platforms.
+# Setup
 
-Probably I'll make some adjustments on the original code to keep the code readable.
-Putting everything in a single class is not a good practice, and you will probably find it difficult to see the
-relationship between Vulkan objects this way.
-All adjustments will be pointed on its section in the README.md file.
+The original tutorial installs dependencies using development library packages.
+This is a quick start, but you lose control over your dependency versions.
+I decided to manage the dependencies explicitly, but automatically, using CMake.
 
-# Chapters
+To set up your development environment, follow these steps:
 
-## Development environment
+1. Download and extract the [Vulkan SDK](https://vulkan.lunarg.com). I used version `1.3.268.0`.
+2. Follow the SDK [installation steps](https://vulkan.lunarg.com/doc/sdk/1.3.268.0/linux/getting_started.html).
+3. `git clone https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp`
+4. `cd khronos-vulkan-tutorial-cpp`
+5. (Optional) `bun install` or npm, pnpm, yarn, etc.
+   This will configure git hooks to automatically format the source code before commits.
+6. Build the project:
+```shell
+# Generate build files
+mkdir build && cd build
 
-Original tutorial link: https://docs.vulkan.org/tutorial/latest/02_Development_environment.html
+# This will download all dependencies to build/_deps directory
+cmake -DCMAKE_MAKE_PROGRAM=ninja -DCMAKE_CXX_COMPILER=clang++-17 -G "Ninja Multi-Config" -S .. -B .
 
-### Branches
+# Build
+cmake --build . --target KhronosVulkanTutorialHpp --config Debug -j 4 # Replace 4 with your CPU core count
 
-- [Linux](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
+# Run
+./Debug/KhronosVulkanTutorialHpp
+```
+
+If you did set up the SDK correctly, you'll see a message:
+
+```
+VULKAN_SDK found at <your install location>
+```

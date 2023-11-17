@@ -38,6 +38,11 @@ if (NOT GLFW_POPULATED)
 endif ()
 
 ##################################### GLM ######################################
+add_compile_definitions(
+        GLM_FORCE_DEPTH_ZERO_TO_ONE
+        GLM_FORCE_RADIANS
+)
+
 FetchContent_Declare(
         GLM
         GIT_REPOSITORY https://github.com/g-truc/glm.git

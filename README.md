@@ -2,58 +2,30 @@
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 
-# Requirements
-
-- C++17 compiler. I used the `Ubuntu clang version 17.0.5 (++20231114093837+98bfdac5ce82-1~exp1~20231114093938.66)` but
-  16 should work fine.
-- CMake 3.22 or higher. I used `3.26.4`.
-- A build system. I'm using [Ninja](https://ninja-build.org/), but you can use Unix Makefiles if you want.
-
-# Setup
-
-The original tutorial installs dependencies using development library packages.
-This is a quick start, but you lose control over your dependency versions.
-I decided to manage the dependencies explicitly, but automatically, using CMake.
-
-To set up your development environment, follow these steps:
-
-1. Download and extract the [Vulkan SDK](https://vulkan.lunarg.com). I used version `1.3.268.0`.
-2. Follow the SDK [installation steps](https://vulkan.lunarg.com/doc/sdk/1.3.268.0/linux/getting_started.html).
-3. `git clone https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp`
-4. `cd khronos-vulkan-tutorial-cpp`
-5. (Optional) `bun install` or npm, pnpm, yarn, etc.
-   This will configure git hooks to automatically format the source code before commits.
-6. Build the project:
-
-```shell
-# Generate build files
-mkdir build && cd build
-
-# This will download all dependencies to build/_deps directory
-cmake -DCMAKE_MAKE_PROGRAM=ninja -DCMAKE_CXX_COMPILER=clang++-17 -G "Ninja Multi-Config" -S .. -B .
-
-# Build
-cmake --build . --target KhronosVulkanTutorialHpp --config Debug -j 4 # Replace 4 with your CPU core count
-
-# Run
-./Debug/KhronosVulkanTutorialHpp
-```
-
-If you did set up the SDK correctly, you'll see a message:
-
-```
-VULKAN_SDK found at <your install location>
-```
-
 # Adjustments
 
-- Moved `GLM_FORCE_RADIANS` and `GLM_FORCE_DEPTH_ZERO_TO_ONE` includes to
-  https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/7b3324002e9371b31a987ff7335b2e80145887ca/CMakeLists.txt#L41
+- Renamed class `HelloTriangleApplication` to `Application` since in the future this code will render much more
+  complex geometry than triangles.
 
-- Deleted `#define GLFW_INCLUDE_VULKAN` since it imports the `vulkan.h` and we are now using `vulkan.hpp`
+- Moved code related to GLFW window management to a separate class.
+  I did this because it is very likely you will want to change the window management library in the future,
+  e.g. [Dear ImGUI](https://github.com/ocornut/imgui).
+  Thus, when you change window management library it will be a lot easier since there will be less code to change,
+  and it will be organized.
+
+- All classes have separated definition and implementation. Benefits of doing this:
+    - The code is encapsulated. Implementation details are separate from the API interface.
+      If in the future you decide to extract parts of the application to a library it will be much easier to do.
+    - Compilation time is reduced.
+    - Visibility of dependency usages. When you put everything on a single class, there will be lots of `#include`
+      macros, and you will likely get lost on who depends on who.
 
 # Navigation
 
-[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/02_Development_environment.html)
+[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/00_Base_code.html)
 
-[⏭ Drawing a triangle / Setup / Base Code](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/01-base-code)
+[⏮ Development environment](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
+
+[⏭ Next step](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/02-instance)
+
+[🔄 Diff from previous step](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/01-development-environment...linux/02-drawing-triangle/01-setup/01-base-code)

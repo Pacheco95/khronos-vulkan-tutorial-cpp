@@ -28,6 +28,7 @@ To set up your development environment, follow these steps:
 5. (Optional) `bun install` or npm, pnpm, yarn, etc.
    This will configure git hooks to automatically format the source code before commits.
 6. Build the project:
+
 ```shell
 # Generate build files
 mkdir build && cd build
@@ -47,3 +48,10 @@ If you did set up the SDK correctly, you'll see a message:
 ```
 VULKAN_SDK found at <your install location>
 ```
+
+# Adjustments
+
+- Moved `GLM_FORCE_RADIANS` and `GLM_FORCE_DEPTH_ZERO_TO_ONE` includes to
+  https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/7b3324002e9371b31a987ff7335b2e80145887ca/CMakeLists.txt#L41
+
+- Deleted `#define GLFW_INCLUDE_VULKAN` since it imports the `vulkan.h` and we are now using `vulkan.hpp`

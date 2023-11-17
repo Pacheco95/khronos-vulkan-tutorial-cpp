@@ -55,3 +55,9 @@ VULKAN_SDK found at <your install location>
   https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/7b3324002e9371b31a987ff7335b2e80145887ca/CMakeLists.txt#L41
 
 - Deleted `#define GLFW_INCLUDE_VULKAN` since it imports the `vulkan.h` and we are now using `vulkan.hpp`
+
+# Navigation
+
+[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/02_Development_environment.html)
+
+[⏭ Drawing a triangle / Setup / Base Code](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/01-base-code)

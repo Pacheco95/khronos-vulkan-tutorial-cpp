@@ -22,6 +22,7 @@ void Application::initVulkan() {
   createInstance();
   setupDebugMessenger();
   pickPhysicalDevice();
+  createLogicalDevice();
 }
 
 void Application::mainLoop() {
@@ -31,6 +32,7 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  m_device.destroy();
   m_instance.destroy(m_debugMessenger);
   m_instance.destroy();
 }
@@ -99,6 +101,26 @@ void Application::pickPhysicalDevice() {
   }
 
   m_physicalDevice = *it;
+}
+
+void Application::createLogicalDevice() {
+  const auto& indices = QueueFamily::findIndices(m_physicalDevice);
+  const auto queuePriorities = {1.0f};
+  vk::PhysicalDeviceFeatures deviceFeatures;
+
+  auto queueCreateInfos = {
+      vk::DeviceQueueCreateInfo()
+          .setQueueFamilyIndex(indices.graphicsFamily.value())
+          .setQueueCount(1)
+          .setQueuePriorities(queuePriorities)};
+
+  const auto& deviceCreateInfo =
+      vk::DeviceCreateInfo()
+          .setQueueCreateInfos(queueCreateInfos)
+          .setPEnabledFeatures(&deviceFeatures);
+
+  m_device = m_physicalDevice.createDevice(deviceCreateInfo);
+  m_graphicsQueue = m_device.getQueue(indices.graphicsFamily.value(), 0);
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) {

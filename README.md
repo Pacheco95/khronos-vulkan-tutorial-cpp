@@ -4,16 +4,21 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
-- Moved queue family related code to `QueueFamily` class.
-- Used STL `std::find_if` to find a suitable GPU:
-  https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/b70ae0e1b4f93d075de42c9c391de5afdfb6cf2a/src/Application.cpp#L95
+- We did not set up device-specific validation layers because it was deprecated a long time ago, and the documentation
+  states:
+  > [At the time of deprecation there were no known device-only layers and no compelling reason to create one.](
+  > https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap46.html#extendingvulkan-layers-devicelayerdeprecation)
 
 # Navigation
 
-[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.html)
+[🌐 Original tutorial](
+https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/04_Logical_device_and_queues.html)
 
-[⏮ Drawing a triangle / Setup / Validation layers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/03-validation-layers)
+[⏮ Drawing a triangle / Setup / Physical devices and queue families](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families)
 
-[⏭ Drawing a triangle / Setup / Logical device and queues](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/05-logical-device-and-queues)
+[⏭ Drawing a triangle / Setup / Logical device and queues](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/06-logical-device-and-queues)
 
-[🔄 Diff from previous step](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/01-setup/03-validation-layers...linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families)
+[🔄 Diff from previous step](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families...linux/02-drawing-triangle/01-setup/05-logical-device-and-queues)

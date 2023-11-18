@@ -18,7 +18,7 @@ https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/04_Logica
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families)
 
 [⏭ Drawing a triangle / Setup / Logical device and queues](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/06-logical-device-and-queues)
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/01-window-surface)
 
 [🔄 Diff from previous step](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families...linux/02-drawing-triangle/01-setup/05-logical-device-and-queues)

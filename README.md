@@ -4,20 +4,7 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
-- All validation layer related code was moved to `ValidationLayer` class.
-- `Config::IS_VALIDATION_LAYERS_ENABLED` was declared as `const` instead of `constexpr` and defined in `Config.cpp`
-  instead of `Config.hpp` to avoid compiler warnings saying that expression like this can be (erroneously) simplified:
-  ```c++
-  if (Config::IS_VALIDATION_LAYERS_ENABLED) {
-    // The compiler is warning because Config::IS_VALIDATION_LAYERS_ENABLED is a constexpr
-    // and will always evaluate to true or false depending on your build target (Debug / Release)
-  }
-  ```
-- `vkDestroyDebugUtilsMessengerEXT` is now loaded right after the `vk::Instance` creation instead of in `cleanup()`
-
-> [!TIP]
-> At this point, you can clearly see the effect of our organization.
-> The original formatted code has 231 lines and our `Application.cpp` only has 82. This is ≈ 64% less code!
+-
 
 # Navigation
 

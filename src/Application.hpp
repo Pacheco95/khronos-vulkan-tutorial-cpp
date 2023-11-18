@@ -12,6 +12,7 @@ class Application {
   Window m_window;
   vk::Instance m_instance;
   vk::DebugUtilsMessengerEXT m_debugMessenger;
+  vk::PhysicalDevice m_physicalDevice;
 
   void initWindow();
   void initVulkan();
@@ -20,4 +21,6 @@ class Application {
 
   void createInstance();
   void setupDebugMessenger();
+  void pickPhysicalDevice();
+  static bool isDeviceSuitable(const vk::PhysicalDevice& device);
 };

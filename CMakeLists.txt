@@ -15,6 +15,8 @@ set(SOURCES
         src/Utils.hpp
         src/ValidationLayer.cpp
         src/ValidationLayer.hpp
+        src/QueueFamily.cpp
+        src/QueueFamily.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)

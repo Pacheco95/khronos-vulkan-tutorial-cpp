@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include "Config.hpp"
+#include "QueueFamily.hpp"
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
 
@@ -20,6 +21,7 @@ void Application::initWindow() {
 void Application::initVulkan() {
   createInstance();
   setupDebugMessenger();
+  pickPhysicalDevice();
 }
 
 void Application::mainLoop() {
@@ -78,4 +80,27 @@ void Application::setupDebugMessenger() {
       ValidationLayer::getDebugUtilsMessengerCreateInfoEXT();
 
   m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(createInfo);
+}
+
+void Application::pickPhysicalDevice() {
+  using namespace std;
+
+  const vector<vk::PhysicalDevice>& devices =
+      m_instance.enumeratePhysicalDevices();
+
+  if (devices.empty()) {
+    throw runtime_error("Failed to findOrNull devices with Vulkan support");
+  }
+
+  auto it = find_if(devices.begin(), devices.end(), isDeviceSuitable);
+
+  if (it == devices.end()) {
+    throw runtime_error("Failed to find a suitable GPU");
+  }
+
+  m_physicalDevice = *it;
+}
+
+bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) {
+  return QueueFamily::findIndices(device).isComplete();
 }

@@ -1,4 +1,4 @@
-# Linux ❘ Development environment
+# Linux ❘ Setup ❘ Base code
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 

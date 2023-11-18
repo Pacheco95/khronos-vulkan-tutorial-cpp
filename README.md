@@ -10,3 +10,4 @@ using the [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) binding.
     * [Instance](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/02-instance)
     * [Validation layers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/03-validation-layers)
     * [Physical devices and queue families](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families)
+    * [Logical device and queues](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/05-logical-device-and-queues)

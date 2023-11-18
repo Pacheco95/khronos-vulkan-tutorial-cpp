@@ -11,6 +11,7 @@ class Application {
  private:
   Window m_window;
   vk::Instance m_instance;
+  vk::DebugUtilsMessengerEXT m_debugMessenger;
 
   void initWindow();
   void initVulkan();
@@ -18,4 +19,5 @@ class Application {
   void cleanup();
 
   void createInstance();
+  void setupDebugMessenger();
 };

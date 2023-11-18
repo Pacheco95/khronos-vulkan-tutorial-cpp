@@ -3,5 +3,5 @@
 #include <vector>
 
 struct Utils {
-  static std::vector<const char*> getGlfwRequiredInstanceExtensions();
+  static std::vector<const char*> getRequiredInstanceExtensions();
 };

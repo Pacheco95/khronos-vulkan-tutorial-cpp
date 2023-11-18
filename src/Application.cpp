@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "Utils.hpp"
+#include "ValidationLayer.hpp"
 
 void Application::run() {
   initWindow();
@@ -16,7 +17,10 @@ void Application::initWindow() {
   );
 }
 
-void Application::initVulkan() { createInstance(); }
+void Application::initVulkan() {
+  createInstance();
+  setupDebugMessenger();
+}
 
 void Application::mainLoop() {
   while (!m_window.shouldClose()) {
@@ -25,10 +29,17 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  m_instance.destroy(m_debugMessenger);
   m_instance.destroy();
 }
 
 void Application::createInstance() {
+  if (Config::IS_VALIDATION_LAYERS_ENABLED) {
+    if (!ValidationLayer::checkValidationLayerSupport()) {
+      throw std::runtime_error("Validation layers requested, but unavailable");
+    }
+  }
+
   vk::ApplicationInfo appInfo =
       vk::ApplicationInfo()
           .setPApplicationName(Config::APP_NAME)
@@ -37,12 +48,34 @@ void Application::createInstance() {
           .setEngineVersion(VK_MAKE_API_VERSION(0, 1, 0, 0))
           .setApiVersion(VK_API_VERSION_1_0);
 
-  std::vector extension = Utils::getGlfwRequiredInstanceExtensions();
+  std::vector extension = Utils::getRequiredInstanceExtensions();
 
   vk::InstanceCreateInfo instanceInfo =
       vk::InstanceCreateInfo()
           .setPApplicationInfo(&appInfo)
           .setPEnabledExtensionNames(extension);
 
+  vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+
+  if (Config::IS_VALIDATION_LAYERS_ENABLED) {
+    debugCreateInfo = ValidationLayer::getDebugUtilsMessengerCreateInfoEXT();
+
+    instanceInfo.pNext = &debugCreateInfo;
+    instanceInfo.setPEnabledLayerNames(Config::VALIDATION_LAYERS);
+  }
+
   m_instance = vk::createInstance(instanceInfo);
+}
+
+void Application::setupDebugMessenger() {
+  if (!Config::IS_VALIDATION_LAYERS_ENABLED) {
+    return;
+  }
+
+  ValidationLayer::loadDebugUtilsMessengerFunctions(m_instance);
+
+  vk::DebugUtilsMessengerCreateInfoEXT createInfo =
+      ValidationLayer::getDebugUtilsMessengerCreateInfoEXT();
+
+  m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(createInfo);
 }

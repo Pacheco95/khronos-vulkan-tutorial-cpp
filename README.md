@@ -8,51 +8,27 @@ General information [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-
 
 # Adjustments
 
-- Replaced all `VkType` to `vk::Type`. All C structs and enums will be replaced to their counterpart under `vk`
-  namespace.
-- We'll not set the `sType` for structs anymore. `Vulkan-Hpp` does this for us in a typesafe way.
-- Replaced the deprecated `VK_MAKE_VERSION` macro to `VK_MAKE_API_VERSION`. Pay attention to the first new parameter.
-- There's no need to use list initialization anymore since all types have default constructors.
-  `VkApplicationInfo appInfo{};` becomes `vk::ApplicationInfo appInfo;`
-- On some occasions, I'll use the type constructor to reduce lines of code like this:
-
+- All validation layer related code was moved to `ValidationLayer` class.
+- `Config::IS_VALIDATION_LAYERS_ENABLED` was declared as `const` instead of `constexpr` and defined in `Config.cpp`
+  instead of `Config.hpp` to avoid compiler warnings saying that expression like this can be (erroneously) simplified:
   ```c++
-  // Note the first parameter initialization with the default using with list initialization syntax
-  // See https://en.cppreference.com/w/cpp/language/list_initialization
-  vk::InstanceCreateInfo createInfo({}, &appInfo);
-
-  // Instead of
-  vk::InstanceCreateInfo createInfo;
-  createInfo.pApplicationInfo = &appInfo;
+  if (Config::IS_VALIDATION_LAYERS_ENABLED) {
+    // The compiler is warning because Config::IS_VALIDATION_LAYERS_ENABLED is a constexpr
+    // and will always evaluate to true or false depending on your build target (Debug / Release)
+  }
   ```
+- `vkDestroyDebugUtilsMessengerEXT` is now loaded right after the `vk::Instance` creation instead of in `cleanup()`
 
-  I advise you to take this approach very carefully since, in some cases, it can reduce the code legibility a lot.
-- I will also use the fluent initialization of objects like this:
-  ```c++
-  auto appInfo =
-      vk::ApplicationInfo()
-          .setPApplicationName(Config::APP_NAME)
-          .setApplicationVersion(VK_MAKE_API_VERSION(0, 1, 0, 0))
-          .setPEngineName("No Engine")
-          .setEngineVersion(VK_MAKE_API_VERSION(0, 1, 0, 0))
-          .setApiVersion(VK_API_VERSION_1_0);
-  ```
-  It makes the code easier to read and avoid setting attributes on wrong objects.
-- Vulkan-Hpp has exceptions enabled by default.
-  So, there is no need to check the results of **most** function calls that returns a `vk::Result`.
-  See https://github.com/KhronosGroup/Vulkan-Hpp#return-values-error-codes--exceptions.
-- In Vulkan-Hpp, cleanup is done using the respective object's `destroy()` method.
-- As you can see, there is no `m_window.destroy()` method in `cleanup()` for two reasons:
-    1. `m_window` is an instance of our custom `Window` class and there's no such method.
-    2. In C++ member variables are cleaned up using the first in, last out, aka. stack algorithm. And since `m_window`
-       is the first declared class variable, it will be the last to clean up.
+> [!TIP]
+> At this point, you can clearly see the effect of our organization.
+> The original formatted code has 231 lines and our `Application.cpp` only has 82. This is ≈ 64% less code!
 
 # Navigation
 
-[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/01_Instance.html)
+[🌐 Original tutorial](https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/02_Validation_layers.html)
 
-[⏮ Drawing a triangle / Setup / Base code](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/01-base-code)
+[⏮ Drawing a triangle / Setup / Instance](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/02-instance)
 
-[⏭ Drawing a triangle / Setup / Validation layers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/03-validation-layers)
+[⏭ Drawing a triangle / Setup / Physical devices and queue families](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/04-physical-devices-and-queue-families)
 
-[🔄 Diff from previous step](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/01-setup/01-base-code...linux/02-drawing-triangle/01-setup/02-instance)
+[🔄 Diff from previous step](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/01-setup/02-instance...linux/02-drawing-triangle/01-setup/03-validation-layers)

@@ -9,9 +9,12 @@ set(SOURCES
         src/Application.hpp
         src/Window.cpp
         src/Window.hpp
+        src/Config.cpp
         src/Config.hpp
         src/Utils.cpp
         src/Utils.hpp
+        src/ValidationLayer.cpp
+        src/ValidationLayer.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)

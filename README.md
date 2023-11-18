@@ -1,10 +1,6 @@
-# C++ Khronos Tutorial for Linux
+# Linux ❘ Setup ❘ Instance
 
-Reimplementation of the original
-[C tutorial](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
-using the [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) binding.
-
-General information [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/main/README.md).
+Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 
 # Adjustments
 

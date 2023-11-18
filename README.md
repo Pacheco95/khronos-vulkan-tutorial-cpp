@@ -1,8 +1,18 @@
 # C++ Khronos Tutorial for Linux
 
-Reimplementation of the original
+Reimplementation for Linux of the original
 [C tutorial](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
 using the [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) binding.
+
+This branch contains all the commits.
+Everytime a new chapter is implemented, it is merged here.
+You can check the implementation until a given step using the table of contents below.
+Each branch contains navigation links for previous/next steps and also a useful link to check the git diff between last
+and current step.
+
+> [!IMPORTANT]
+> If a bug was found during the development of the current branch, the fix **will not be applied to previous branches**.
+> Instead, the next branch that fixes the bug will have a bugfix notice in the table of content below.
 
 * [Development environment](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
 * Setup

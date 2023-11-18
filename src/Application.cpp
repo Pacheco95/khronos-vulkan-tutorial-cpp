@@ -21,6 +21,7 @@ void Application::initWindow() {
 void Application::initVulkan() {
   createInstance();
   setupDebugMessenger();
+  createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
 }
@@ -33,6 +34,7 @@ void Application::mainLoop() {
 
 void Application::cleanup() {
   m_device.destroy();
+  m_instance.destroy(m_surface);
   m_instance.destroy(m_debugMessenger);
   m_instance.destroy();
 }
@@ -94,25 +96,21 @@ void Application::pickPhysicalDevice() {
     throw runtime_error("Failed to findOrNull devices with Vulkan support");
   }
 
-  auto it = find_if(devices.begin(), devices.end(), isDeviceSuitable);
-
-  if (it == devices.end()) {
-    throw runtime_error("Failed to find a suitable GPU");
+  for (const auto& device : devices) {
+    if (isDeviceSuitable(device)) {
+      m_physicalDevice = device;
+    }
   }
 
-  m_physicalDevice = *it;
+  if (!m_physicalDevice) {
+    throw runtime_error("Failed to find a suitable GPU");
+  }
 }
 
 void Application::createLogicalDevice() {
-  const auto& indices = QueueFamily::findIndices(m_physicalDevice);
-  const auto queuePriorities = {1.0f};
+  const auto& indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
+  const auto& queueCreateInfos = indices.getQueueCreateInfos();
   vk::PhysicalDeviceFeatures deviceFeatures;
-
-  auto queueCreateInfos = {
-      vk::DeviceQueueCreateInfo()
-          .setQueueFamilyIndex(indices.graphicsFamily.value())
-          .setQueueCount(1)
-          .setQueuePriorities(queuePriorities)};
 
   const auto& deviceCreateInfo =
       vk::DeviceCreateInfo()
@@ -120,9 +118,15 @@ void Application::createLogicalDevice() {
           .setPEnabledFeatures(&deviceFeatures);
 
   m_device = m_physicalDevice.createDevice(deviceCreateInfo);
+
   m_graphicsQueue = m_device.getQueue(indices.graphicsFamily.value(), 0);
+  m_presentQueue = m_device.getQueue(indices.presentFamily.value(), 0);
+}
+
+void Application::createSurface() {
+    m_surface = m_window.createSurface(m_instance);
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) {
-  return QueueFamily::findIndices(device).isComplete();
+  return QueueFamily::findIndices(device, m_surface).isComplete();
 }

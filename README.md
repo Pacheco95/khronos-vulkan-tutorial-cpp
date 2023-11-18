@@ -1,4 +1,4 @@
-# Linux ❘ Setup ❘ Validation layers
+# Linux ❘ Setup ❘ Physical devices and queue families
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 

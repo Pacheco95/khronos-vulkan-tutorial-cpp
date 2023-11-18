@@ -29,12 +29,6 @@ Putting everything in a single class is not a good practice, and you will probab
 relationship between Vulkan objects this way.
 All adjustments will be pointed on its section in the README.md file.
 
-# Chapters
+### Implementations
 
-## Development environment
-
-Original tutorial link: https://docs.vulkan.org/tutorial/latest/02_Development_environment.html
-
-### Branches
-
-- [Linux](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
+- [Linux](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary)

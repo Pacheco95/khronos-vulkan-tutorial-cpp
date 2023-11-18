@@ -29,3 +29,14 @@ bool Window::shouldClose() { return glfwWindowShouldClose(m_window); }
 void Window::pollEvents() {  // NOLINT(*-convert-member-functions-to-static)
   glfwPollEvents();
 }
+
+vk::SurfaceKHR Window::createSurface(const vk::Instance& instance) {
+  VkSurfaceKHR surface;
+
+  if (glfwCreateWindowSurface(instance, m_window, nullptr, &surface) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to create window surface");
+  }
+
+  return surface;
+}

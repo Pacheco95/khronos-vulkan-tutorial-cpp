@@ -1,3 +1,5 @@
-*
-!LICENSE
-!README.md
+.idea/
+.vscode/
+cmake-build*/
+node_modules/
+*lock*

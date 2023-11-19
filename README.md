@@ -4,7 +4,13 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
-
+- Moved struct `SwapChainSupportDetails` to `Application` class and added constructor for convenience.
+- Improved methods constness and added `[[nodiscard]]` attributes.
+- Moved device extensions vector to `Config` class.
+- Created `noneOf` template utility function to make code cleaner.
+- Removed unused `Window` constructor.
+- Extracted extent related code at `chooseSwapExtent()` to `Window::getExtent()`.
+- Formatted `QueueFamily::Indices::getQueueCreateInfos()` method.
 
 # Navigation
 
@@ -14,7 +20,7 @@ https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/01_Presentation/01
 [⏮ Drawing a triangle / Presentation / Window surface](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/01-window-surface)
 
-[⏭ Drawing a triangle / Presentation / Swap chain](
+[⏭ Drawing a triangle / Presentation / Image views](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/03-image-views)
 
 [🔄 Diff from previous step](

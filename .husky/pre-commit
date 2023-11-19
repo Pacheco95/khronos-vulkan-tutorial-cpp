@@ -3,7 +3,7 @@
 
 
 FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(src|include)/.+\.(cpp|h|cxx|hxx|hpp|c|inl)$')
-[ -z "$FILES" ] && exit 0
+[ -z "$FILES" ] && (exit 0)
 
 echo "$FILES" | xargs clang-format -i
 echo "$FILES" | xargs git add

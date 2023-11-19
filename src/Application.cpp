@@ -27,6 +27,7 @@ void Application::initVulkan() {
   pickPhysicalDevice();
   createLogicalDevice();
   createSwapChain();
+  createImageViews();
 }
 
 void Application::mainLoop() {
@@ -36,6 +37,9 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  for (auto imageView : m_swapChainImageViews) {
+    m_device.destroy(imageView);
+  }
   m_device.destroy(m_swapChain);
   m_device.destroy();
   m_instance.destroy(m_surface);
@@ -177,6 +181,28 @@ void Application::createSwapChain() {
   m_swapChainExtent = extent;
 }
 
+void Application::createImageViews() {
+  m_swapChainImageViews.reserve(m_swapChainImages.size());
+
+  for (const auto& m_swapChainImage : m_swapChainImages) {
+    const auto& createInfo =
+        vk::ImageViewCreateInfo()
+            .setImage(m_swapChainImage)
+            .setViewType(vk::ImageViewType::e2D)
+            .setFormat(m_swapChainImageFormat)
+            .setSubresourceRange(
+                vk::ImageSubresourceRange()
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setBaseMipLevel(0)
+                    .setLevelCount(1)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1)
+            );
+
+    m_swapChainImageViews.emplace_back(m_device.createImageView(createInfo));
+  }
+}
+
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
   const auto& indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -261,15 +287,15 @@ vk::Extent2D Application::chooseSwapExtent(
 }
 
 uint32_t Application::getSuitableImageCount(
-        const SwapChainSupportDetails& swapChainSupport
+    const SwapChainSupportDetails& swapChainSupport
 ) {
-    uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
-    uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
+  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
 
-    bool hasLimitedImageCount = maxImageCount > 0;
+  bool hasLimitedImageCount = maxImageCount > 0;
 
-    if (hasLimitedImageCount && requestImageCount > maxImageCount) {
-        requestImageCount = maxImageCount;
-    }
-    return requestImageCount;
+  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
+    requestImageCount = maxImageCount;
+  }
+  return requestImageCount;
 }

@@ -1,8 +1,13 @@
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 #include "Application.hpp"
 
 int main() {
+  auto level = static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL);
+  spdlog::set_level(level);
+
   Application app;
 
   try {

@@ -1,7 +1,7 @@
 .PHONY: $(MAKECMDGOALS)
 
 clean:
-	rm -rf build*
+	rm -rf cmake-build*
 
 format:
 	find src -type f \

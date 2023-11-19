@@ -47,6 +47,7 @@ class Application {
   void createLogicalDevice();
   void createSwapChain();
   void createImageViews();
+  void createGraphicsPipeline();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 
@@ -69,4 +70,8 @@ class Application {
   [[nodiscard]] static uint32_t getSuitableImageCount(
       const SwapChainSupportDetails& swapChainSupport
   );
+
+  [[nodiscard]] vk::ShaderModule createShaderModule(
+      const std::vector<char>& code
+  ) const;
 };

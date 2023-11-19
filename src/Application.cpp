@@ -206,6 +206,93 @@ void Application::createImageViews() {
   }
 }
 
+void Application::createGraphicsPipeline() {
+  auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
+  auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
+
+  vk::ShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+  vk::ShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+  const auto& vertShaderStageInfo =
+      vk::PipelineShaderStageCreateInfo()
+          .setStage(vk::ShaderStageFlagBits::eVertex)
+          .setModule(vertShaderModule)
+          .setPName("main");
+
+  const auto& fragShaderStageInfo =
+      vk::PipelineShaderStageCreateInfo()
+          .setStage(vk::ShaderStageFlagBits::eFragment)
+          .setModule(fragShaderModule)
+          .setPName("main");
+
+  vk::PipelineShaderStageCreateInfo shaderStages[]{
+      vertShaderStageInfo, fragShaderStageInfo};
+
+  const auto& vertexInputInfo =
+      vk::PipelineVertexInputStateCreateInfo()
+          .setVertexBindingDescriptionCount(0)
+          .setVertexAttributeDescriptionCount(0);
+
+  const auto& inputAssembly =
+      vk::PipelineInputAssemblyStateCreateInfo()
+          .setTopology(vk::PrimitiveTopology::eTriangleList)
+          .setPrimitiveRestartEnable(vk::False);
+
+  const auto& viewportState =
+      vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(
+          1
+      );
+
+  const auto& rasterizer =
+      vk::PipelineRasterizationStateCreateInfo()
+          .setDepthClampEnable(vk::False)
+          .setRasterizerDiscardEnable(vk::False)
+          .setPolygonMode(vk::PolygonMode::eFill)
+          .setLineWidth(1.0f)
+          .setCullMode(vk::CullModeFlagBits::eBack)
+          .setFrontFace(vk::FrontFace::eClockwise)
+          .setDepthBiasEnable(vk::False);
+
+  const auto& multisampling =
+      vk::PipelineMultisampleStateCreateInfo()
+          .setSampleShadingEnable(vk::False)
+          .setRasterizationSamples(vk::SampleCountFlagBits::e1);
+
+  const auto& colorBlendAttachment =
+      vk::PipelineColorBlendAttachmentState()
+          .setColorWriteMask(
+              vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+              vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+          )
+          .setBlendEnable(vk::False);
+
+  const auto& colorBlending =
+      vk::PipelineColorBlendStateCreateInfo()
+          .setLogicOpEnable(vk::False)
+          .setLogicOp(vk::LogicOp::eCopy)
+          .setAttachmentCount(1)
+          .setPAttachments(&colorBlendAttachment)
+          .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
+
+  std::vector<vk::DynamicState> dynamicStates = {
+      vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+
+  const auto& dynamicState =
+      vk::PipelineDynamicStateCreateInfo()
+          .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
+          .setPDynamicStates(dynamicStates.data());
+
+  const auto& pipelineLayoutInfo =
+      vk::PipelineLayoutCreateInfo()
+          .setSetLayoutCount(0)
+          .setPushConstantRangeCount(0);
+
+  m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
+
+  m_device.destroy(vertShaderModule);
+  m_device.destroy(fragShaderModule);
+}
+
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
   const auto& indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -301,93 +388,6 @@ uint32_t Application::getSuitableImageCount(
     requestImageCount = maxImageCount;
   }
   return requestImageCount;
-}
-
-void Application::createGraphicsPipeline() {
-  auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
-  auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
-
-  vk::ShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-  vk::ShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-
-  const auto& vertShaderStageInfo =
-      vk::PipelineShaderStageCreateInfo()
-          .setStage(vk::ShaderStageFlagBits::eVertex)
-          .setModule(vertShaderModule)
-          .setPName("main");
-
-  const auto& fragShaderStageInfo =
-      vk::PipelineShaderStageCreateInfo()
-          .setStage(vk::ShaderStageFlagBits::eFragment)
-          .setModule(fragShaderModule)
-          .setPName("main");
-
-  vk::PipelineShaderStageCreateInfo shaderStages[]{
-      vertShaderStageInfo, fragShaderStageInfo};
-
-  const auto& vertexInputInfo =
-      vk::PipelineVertexInputStateCreateInfo()
-          .setVertexBindingDescriptionCount(0)
-          .setVertexAttributeDescriptionCount(0);
-
-  const auto& inputAssembly =
-      vk::PipelineInputAssemblyStateCreateInfo()
-          .setTopology(vk::PrimitiveTopology::eTriangleList)
-          .setPrimitiveRestartEnable(vk::False);
-
-  const auto& viewportState =
-      vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(
-          1
-      );
-
-  const auto& rasterizer =
-      vk::PipelineRasterizationStateCreateInfo()
-          .setDepthClampEnable(vk::False)
-          .setRasterizerDiscardEnable(vk::False)
-          .setPolygonMode(vk::PolygonMode::eFill)
-          .setLineWidth(1.0f)
-          .setCullMode(vk::CullModeFlagBits::eBack)
-          .setFrontFace(vk::FrontFace::eClockwise)
-          .setDepthBiasEnable(vk::False);
-
-  const auto& multisampling =
-      vk::PipelineMultisampleStateCreateInfo()
-          .setSampleShadingEnable(vk::False)
-          .setRasterizationSamples(vk::SampleCountFlagBits::e1);
-
-  const auto& colorBlendAttachment =
-      vk::PipelineColorBlendAttachmentState()
-          .setColorWriteMask(
-              vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-              vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
-          )
-          .setBlendEnable(vk::False);
-
-  const auto& colorBlending =
-      vk::PipelineColorBlendStateCreateInfo()
-          .setLogicOpEnable(vk::False)
-          .setLogicOp(vk::LogicOp::eCopy)
-          .setAttachmentCount(1)
-          .setPAttachments(&colorBlendAttachment)
-          .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
-
-  std::vector<vk::DynamicState> dynamicStates = {
-      vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-
-  const auto& dynamicState =
-      vk::PipelineDynamicStateCreateInfo()
-          .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
-          .setPDynamicStates(dynamicStates.data());
-
-  const auto& pipelineLayoutInfo =
-      vk::PipelineLayoutCreateInfo()
-          .setSetLayoutCount(0)
-          .setPushConstantRangeCount(0);
-
-  m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
-
-  m_device.destroy(vertShaderModule);
-  m_device.destroy(fragShaderModule);
 }
 
 vk::ShaderModule Application::createShaderModule(const std::vector<char>& code

@@ -177,20 +177,6 @@ void Application::createSwapChain() {
   m_swapChainExtent = extent;
 }
 
-uint32_t Application::getSuitableImageCount(
-    const SwapChainSupportDetails& swapChainSupport
-) {
-  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
-  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
-
-  bool hasLimitedImageCount = maxImageCount > 0;
-
-  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
-    requestImageCount = maxImageCount;
-  }
-  return requestImageCount;
-}
-
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
   const auto& indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -272,4 +258,18 @@ vk::Extent2D Application::chooseSwapExtent(
   );
 
   return actualExtent;
+}
+
+uint32_t Application::getSuitableImageCount(
+        const SwapChainSupportDetails& swapChainSupport
+) {
+    uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
+    uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+
+    bool hasLimitedImageCount = maxImageCount > 0;
+
+    if (hasLimitedImageCount && requestImageCount > maxImageCount) {
+        requestImageCount = maxImageCount;
+    }
+    return requestImageCount;
 }

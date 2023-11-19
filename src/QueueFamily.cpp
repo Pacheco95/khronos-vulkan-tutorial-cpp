@@ -7,23 +7,23 @@ bool Indices::isComplete() const {
 }
 
 Indices::QueueCreateInfos QueueFamily::Indices::getQueueCreateInfos() const {
-    std::set<uint32_t> uniqueFamilies = {
-            graphicsFamily.value(), presentFamily.value()};
+  std::set<uint32_t> uniqueFamilies = {
+      graphicsFamily.value(), presentFamily.value()};
 
-    float queuePriority = 1.0f;
-    QueueCreateInfos queueCreateInfos;
+  float queuePriority = 1.0f;
+  QueueCreateInfos queueCreateInfos;
 
-    for (uint32_t queueFamilyIndex : uniqueFamilies) {
-        const auto& queueCreateInfo =
-                vk::DeviceQueueCreateInfo()
-                        .setQueueFamilyIndex(queueFamilyIndex)
-                        .setQueueCount(1)
-                        .setPQueuePriorities(&queuePriority);
+  for (uint32_t queueFamilyIndex : uniqueFamilies) {
+    const auto& queueCreateInfo =
+        vk::DeviceQueueCreateInfo()
+            .setQueueFamilyIndex(queueFamilyIndex)
+            .setQueueCount(1)
+            .setPQueuePriorities(&queuePriority);
 
-        queueCreateInfos.emplace_back(queueCreateInfo);
-    }
+    queueCreateInfos.emplace_back(queueCreateInfo);
+  }
 
-    return queueCreateInfos;
+  return queueCreateInfos;
 }
 
 Indices QueueFamily::findIndices(

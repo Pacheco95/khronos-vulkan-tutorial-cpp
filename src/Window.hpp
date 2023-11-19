@@ -16,6 +16,7 @@ class Window {
   bool shouldClose();
   void pollEvents();
   vk::SurfaceKHR createSurface(const vk::Instance& instance);
+  vk::Extent2D getExtent();
 
  private:
   GLFWwindow* m_window = nullptr;

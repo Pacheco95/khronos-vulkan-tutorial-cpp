@@ -33,6 +33,7 @@ class Application {
   std::vector<vk::Image> m_swapChainImages;  // Destroyed by swap chain
   vk::Format m_swapChainImageFormat;
   vk::Extent2D m_swapChainExtent;
+  std::vector<vk::ImageView> m_swapChainImageViews;
 
   void initWindow();
   void initVulkan();
@@ -45,6 +46,7 @@ class Application {
   void pickPhysicalDevice();
   void createLogicalDevice();
   void createSwapChain();
+  void createImageViews();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 

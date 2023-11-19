@@ -27,6 +27,7 @@ void Application::initVulkan() {
   pickPhysicalDevice();
   createLogicalDevice();
   createSwapChain();
+  createImageViews();
 }
 
 void Application::mainLoop() {
@@ -36,6 +37,9 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  for (auto imageView : m_swapChainImageViews) {
+    m_device.destroy(imageView);
+  }
   m_device.destroy(m_swapChain);
   m_device.destroy();
   m_instance.destroy(m_surface);
@@ -177,18 +181,26 @@ void Application::createSwapChain() {
   m_swapChainExtent = extent;
 }
 
-uint32_t Application::getSuitableImageCount(
-    const SwapChainSupportDetails& swapChainSupport
-) {
-  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
-  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+void Application::createImageViews() {
+  m_swapChainImageViews.reserve(m_swapChainImages.size());
 
-  bool hasLimitedImageCount = maxImageCount > 0;
+  for (const auto& m_swapChainImage : m_swapChainImages) {
+    const auto& createInfo =
+        vk::ImageViewCreateInfo()
+            .setImage(m_swapChainImage)
+            .setViewType(vk::ImageViewType::e2D)
+            .setFormat(m_swapChainImageFormat)
+            .setSubresourceRange(
+                vk::ImageSubresourceRange()
+                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                    .setBaseMipLevel(0)
+                    .setLevelCount(1)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1)
+            );
 
-  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
-    requestImageCount = maxImageCount;
+    m_swapChainImageViews.emplace_back(m_device.createImageView(createInfo));
   }
-  return requestImageCount;
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
@@ -272,4 +284,18 @@ vk::Extent2D Application::chooseSwapExtent(
   );
 
   return actualExtent;
+}
+
+uint32_t Application::getSuitableImageCount(
+    const SwapChainSupportDetails& swapChainSupport
+) {
+  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
+  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+
+  bool hasLimitedImageCount = maxImageCount > 0;
+
+  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
+    requestImageCount = maxImageCount;
+  }
+  return requestImageCount;
 }

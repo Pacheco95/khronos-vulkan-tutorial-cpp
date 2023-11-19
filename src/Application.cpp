@@ -7,18 +7,6 @@
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
 
-struct SwapChainSupportDetails {
-  vk::SurfaceCapabilitiesKHR capabilities;
-  std::vector<vk::SurfaceFormatKHR> formats;
-  std::vector<vk::PresentModeKHR> presentModes;
-
-  SwapChainSupportDetails(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
-    capabilities = device.getSurfaceCapabilitiesKHR(surface);
-    formats = device.getSurfaceFormatsKHR(surface);
-    presentModes = device.getSurfacePresentModesKHR(surface);
-  }
-};
-
 void Application::run() {
   initWindow();
   initVulkan();
@@ -155,19 +143,12 @@ void Application::createSwapChain() {
 
   const vk::Extent2D& extent = chooseSwapExtent(swapChainSupport.capabilities);
 
-  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
-  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
-
-  bool hasLimitedImageCount = maxImageCount > 0;
-
-  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
-    requestImageCount = maxImageCount;
-  }
+  uint32_t imageCount = getSuitableImageCount(swapChainSupport);
 
   auto createInfo =
       vk::SwapchainCreateInfoKHR()
           .setSurface(m_surface)
-          .setMinImageCount(requestImageCount)
+          .setMinImageCount(imageCount)
           .setImageFormat(surfaceFormat.format)
           .setImageColorSpace(surfaceFormat.colorSpace)
           .setImageExtent(extent)
@@ -194,6 +175,20 @@ void Application::createSwapChain() {
   m_swapChainImages = m_device.getSwapchainImagesKHR(m_swapChain);
   m_swapChainImageFormat = surfaceFormat.format;
   m_swapChainExtent = extent;
+}
+
+uint32_t Application::getSuitableImageCount(
+    const SwapChainSupportDetails& swapChainSupport
+) {
+  uint32_t requestImageCount = swapChainSupport.capabilities.minImageCount + 1;
+  uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+
+  bool hasLimitedImageCount = maxImageCount > 0;
+
+  if (hasLimitedImageCount && requestImageCount > maxImageCount) {
+    requestImageCount = maxImageCount;
+  }
+  return requestImageCount;
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {

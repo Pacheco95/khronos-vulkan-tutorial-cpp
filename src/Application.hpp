@@ -5,6 +5,18 @@
 #include "Window.hpp"
 
 class Application {
+  struct SwapChainSupportDetails {
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::vector<vk::PresentModeKHR> presentModes;
+
+    SwapChainSupportDetails(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
+      capabilities = device.getSurfaceCapabilitiesKHR(surface);
+      formats = device.getSurfaceFormatsKHR(surface);
+      presentModes = device.getSurfacePresentModesKHR(surface);
+    }
+  };
+
  public:
   void run();
 
@@ -51,4 +63,8 @@ class Application {
   [[nodiscard]] vk::Extent2D chooseSwapExtent(
       const vk::SurfaceCapabilitiesKHR& capabilities
   ) const;
+
+  [[nodiscard]] static uint32_t getSuitableImageCount(
+      const SwapChainSupportDetails& swapChainSupport
+  );
 };

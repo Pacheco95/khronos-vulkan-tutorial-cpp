@@ -325,56 +325,64 @@ void Application::createGraphicsPipeline() {
   vk::PipelineShaderStageCreateInfo shaderStages[]{
       vertShaderStageInfo, fragShaderStageInfo};
 
-  vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-  vertexInputInfo.vertexBindingDescriptionCount = 0;
-  vertexInputInfo.vertexAttributeDescriptionCount = 0;
+  const auto& vertexInputInfo =
+      vk::PipelineVertexInputStateCreateInfo()
+          .setVertexBindingDescriptionCount(0)
+          .setVertexAttributeDescriptionCount(0);
 
-  vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
-  inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
-  inputAssembly.primitiveRestartEnable = vk::False;
+  const auto& inputAssembly =
+      vk::PipelineInputAssemblyStateCreateInfo()
+          .setTopology(vk::PrimitiveTopology::eTriangleList)
+          .setPrimitiveRestartEnable(vk::False);
 
-  vk::PipelineViewportStateCreateInfo viewportState{};
-  viewportState.viewportCount = 1;
-  viewportState.scissorCount = 1;
+  const auto& viewportState =
+      vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(
+          1
+      );
 
-  vk::PipelineRasterizationStateCreateInfo rasterizer{};
-  rasterizer.depthClampEnable = vk::False;
-  rasterizer.rasterizerDiscardEnable = vk::False;
-  rasterizer.polygonMode = vk::PolygonMode::eFill;
-  rasterizer.lineWidth = 1.0f;
-  rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-  rasterizer.frontFace = vk::FrontFace::eClockwise;
-  rasterizer.depthBiasEnable = vk::False;
+  const auto& rasterizer =
+      vk::PipelineRasterizationStateCreateInfo()
+          .setDepthClampEnable(vk::False)
+          .setRasterizerDiscardEnable(vk::False)
+          .setPolygonMode(vk::PolygonMode::eFill)
+          .setLineWidth(1.0f)
+          .setCullMode(vk::CullModeFlagBits::eBack)
+          .setFrontFace(vk::FrontFace::eClockwise)
+          .setDepthBiasEnable(vk::False);
 
-  vk::PipelineMultisampleStateCreateInfo multisampling{};
-  multisampling.sampleShadingEnable = vk::False;
-  multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+  const auto& multisampling =
+      vk::PipelineMultisampleStateCreateInfo()
+          .setSampleShadingEnable(vk::False)
+          .setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
-  vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
-  colorBlendAttachment.colorWriteMask =
-      vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-  colorBlendAttachment.blendEnable = vk::False;
+  const auto& colorBlendAttachment =
+      vk::PipelineColorBlendAttachmentState()
+          .setColorWriteMask(
+              vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+              vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+          )
+          .setBlendEnable(vk::False);
 
-  vk::PipelineColorBlendStateCreateInfo colorBlending{};
-  colorBlending.logicOpEnable = vk::False;
-  colorBlending.logicOp = vk::LogicOp::eCopy;
-  colorBlending.attachmentCount = 1;
-  colorBlending.pAttachments = &colorBlendAttachment;
-  colorBlending.blendConstants[0] = 0.0f;
-  colorBlending.blendConstants[1] = 0.0f;
-  colorBlending.blendConstants[2] = 0.0f;
-  colorBlending.blendConstants[3] = 0.0f;
+  const auto& colorBlending =
+      vk::PipelineColorBlendStateCreateInfo()
+          .setLogicOpEnable(vk::False)
+          .setLogicOp(vk::LogicOp::eCopy)
+          .setAttachmentCount(1)
+          .setPAttachments(&colorBlendAttachment)
+          .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
 
   std::vector<vk::DynamicState> dynamicStates = {
       vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-  vk::PipelineDynamicStateCreateInfo dynamicState{};
-  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-  dynamicState.pDynamicStates = dynamicStates.data();
 
-  vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
+  const auto& dynamicState =
+      vk::PipelineDynamicStateCreateInfo()
+          .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
+          .setPDynamicStates(dynamicStates.data());
+
+  const auto& pipelineLayoutInfo =
+      vk::PipelineLayoutCreateInfo()
+          .setSetLayoutCount(0)
+          .setPushConstantRangeCount(0);
 
   m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
 

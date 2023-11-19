@@ -34,19 +34,21 @@ class Application {
   void createLogicalDevice();
   void createSwapChain();
 
-  bool isDeviceSuitable(const vk::PhysicalDevice& device);
+  [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 
   [[nodiscard]] static bool checkDeviceExtensionSupport(
       const vk::PhysicalDevice& device
   );
 
-  static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
+  [[nodiscard]] static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
       const std::vector<vk::SurfaceFormatKHR>& availableFormats
   );
 
-  static vk::PresentModeKHR chooseSwapPresentMode(
+  [[nodiscard]] static vk::PresentModeKHR chooseSwapPresentMode(
       const std::vector<vk::PresentModeKHR>& availablePresentModes
   );
 
-  vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities);
+  [[nodiscard]] vk::Extent2D chooseSwapExtent(
+      const vk::SurfaceCapabilitiesKHR& capabilities
+  ) const;
 };

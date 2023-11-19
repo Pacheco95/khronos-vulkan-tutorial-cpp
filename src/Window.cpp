@@ -1,9 +1,5 @@
 #include "Window.hpp"
 
-Window::Window(uint16_t width, uint16_t height, const std::string& title) {
-  create(width, height, title);
-}
-
 Window::~Window() {
   if (m_window) {
     glfwDestroyWindow(m_window);
@@ -24,13 +20,13 @@ void Window::create(uint16_t width, uint16_t height, const std::string& title) {
   m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 }
 
-bool Window::shouldClose() { return glfwWindowShouldClose(m_window); }
+bool Window::shouldClose() const { return glfwWindowShouldClose(m_window); }
 
 void Window::pollEvents() {  // NOLINT(*-convert-member-functions-to-static)
   glfwPollEvents();
 }
 
-vk::SurfaceKHR Window::createSurface(const vk::Instance& instance) {
+vk::SurfaceKHR Window::createSurface(const vk::Instance& instance) const {
   VkSurfaceKHR surface;
 
   if (glfwCreateWindowSurface(instance, m_window, nullptr, &surface) !=
@@ -41,7 +37,7 @@ vk::SurfaceKHR Window::createSurface(const vk::Instance& instance) {
   return surface;
 }
 
-vk::Extent2D Window::getExtent() {
+vk::Extent2D Window::getExtent() const {
   int width, height;
   glfwGetFramebufferSize(m_window, &width, &height);
 

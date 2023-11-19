@@ -196,7 +196,7 @@ void Application::createSwapChain() {
   m_swapChainExtent = extent;
 }
 
-bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) {
+bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
   const auto& indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
 
@@ -257,7 +257,7 @@ vk::PresentModeKHR Application::chooseSwapPresentMode(
 
 vk::Extent2D Application::chooseSwapExtent(
     const vk::SurfaceCapabilitiesKHR& capabilities
-) {
+) const {
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;

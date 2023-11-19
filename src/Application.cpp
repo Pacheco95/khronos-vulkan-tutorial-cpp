@@ -2,6 +2,7 @@
 
 #include <limits>
 
+#include "BinaryLoader.hpp"
 #include "Config.hpp"
 #include "QueueFamily.hpp"
 #include "Utils.hpp"
@@ -28,6 +29,7 @@ void Application::initVulkan() {
   createLogicalDevice();
   createSwapChain();
   createImageViews();
+  createGraphicsPipeline();
 }
 
 void Application::mainLoop() {
@@ -298,4 +300,39 @@ uint32_t Application::getSuitableImageCount(
     requestImageCount = maxImageCount;
   }
   return requestImageCount;
+}
+
+void Application::createGraphicsPipeline() {
+  auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
+  auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
+
+  vk::ShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+  vk::ShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+  const auto& vertShaderStageInfo =
+      vk::PipelineShaderStageCreateInfo()
+          .setStage(vk::ShaderStageFlagBits::eVertex)
+          .setModule(vertShaderModule)
+          .setPName("main");
+
+  const auto& fragShaderStageInfo =
+      vk::PipelineShaderStageCreateInfo()
+          .setStage(vk::ShaderStageFlagBits::eFragment)
+          .setModule(fragShaderModule)
+          .setPName("main");
+
+  vk::PipelineShaderStageCreateInfo shaderStages[]{
+      vertShaderStageInfo, fragShaderStageInfo};
+
+  m_device.destroy(vertShaderModule);
+  m_device.destroy(fragShaderModule);
+}
+
+vk::ShaderModule Application::createShaderModule(const std::vector<char>& code
+) const {
+  vk::ShaderModuleCreateInfo createInfo;
+  createInfo.codeSize = code.size();
+  createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+  vk::ShaderModule shaderModule = m_device.createShaderModule(createInfo);
+  return shaderModule;
 }

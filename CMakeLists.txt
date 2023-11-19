@@ -17,6 +17,8 @@ set(SOURCES
         src/ValidationLayer.hpp
         src/QueueFamily.cpp
         src/QueueFamily.hpp
+        src/BinaryLoader.cpp
+        src/BinaryLoader.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)
@@ -71,10 +73,33 @@ endif ()
 
 target_include_directories(KhronosVulkanTutorialHpp PRIVATE ${glm_SOURCE_DIR})
 
+
+################################### SPDLog #####################################
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN)
+else ()
+  add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
+endif ()
+
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.12.0
+)
+
+FetchContent_GetProperties(spdlog)
+if (NOT spdlog_POPULATED)
+  FetchContent_Populate(spdlog)
+  add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
+endif ()
+
+############################ End of dependencies ###############################
+
 target_link_libraries(KhronosVulkanTutorialHpp
         PRIVATE
         Vulkan::Vulkan
         glfw
+        spdlog
         dl
         pthread
         X11
@@ -83,5 +108,8 @@ target_link_libraries(KhronosVulkanTutorialHpp
         Xi
 )
 
-# Install targets
+add_subdirectory(res/shaders)
+
+add_dependencies(KhronosVulkanTutorialHpp Shaders)
+
 install(TARGETS KhronosVulkanTutorialHpp DESTINATION bin)

@@ -39,7 +39,8 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
-  for (auto imageView : m_swapChainImageViews) {
+  m_device.destroy(m_pipelineLayout);
+  for (const auto& imageView : m_swapChainImageViews) {
     m_device.destroy(imageView);
   }
   m_device.destroy(m_swapChain);
@@ -323,6 +324,59 @@ void Application::createGraphicsPipeline() {
 
   vk::PipelineShaderStageCreateInfo shaderStages[]{
       vertShaderStageInfo, fragShaderStageInfo};
+
+  vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
+  vertexInputInfo.vertexBindingDescriptionCount = 0;
+  vertexInputInfo.vertexAttributeDescriptionCount = 0;
+
+  vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
+  inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+  inputAssembly.primitiveRestartEnable = vk::False;
+
+  vk::PipelineViewportStateCreateInfo viewportState{};
+  viewportState.viewportCount = 1;
+  viewportState.scissorCount = 1;
+
+  vk::PipelineRasterizationStateCreateInfo rasterizer{};
+  rasterizer.depthClampEnable = vk::False;
+  rasterizer.rasterizerDiscardEnable = vk::False;
+  rasterizer.polygonMode = vk::PolygonMode::eFill;
+  rasterizer.lineWidth = 1.0f;
+  rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+  rasterizer.frontFace = vk::FrontFace::eClockwise;
+  rasterizer.depthBiasEnable = vk::False;
+
+  vk::PipelineMultisampleStateCreateInfo multisampling{};
+  multisampling.sampleShadingEnable = vk::False;
+  multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+
+  vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
+  colorBlendAttachment.colorWriteMask =
+      vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+  colorBlendAttachment.blendEnable = vk::False;
+
+  vk::PipelineColorBlendStateCreateInfo colorBlending{};
+  colorBlending.logicOpEnable = vk::False;
+  colorBlending.logicOp = vk::LogicOp::eCopy;
+  colorBlending.attachmentCount = 1;
+  colorBlending.pAttachments = &colorBlendAttachment;
+  colorBlending.blendConstants[0] = 0.0f;
+  colorBlending.blendConstants[1] = 0.0f;
+  colorBlending.blendConstants[2] = 0.0f;
+  colorBlending.blendConstants[3] = 0.0f;
+
+  std::vector<vk::DynamicState> dynamicStates = {
+      vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+  vk::PipelineDynamicStateCreateInfo dynamicState{};
+  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+  dynamicState.pDynamicStates = dynamicStates.data();
+
+  vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
+  pipelineLayoutInfo.setLayoutCount = 0;
+  pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+  m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
 
   m_device.destroy(vertShaderModule);
   m_device.destroy(fragShaderModule);

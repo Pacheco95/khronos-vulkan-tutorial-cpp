@@ -34,6 +34,7 @@ class Application {
   vk::Format m_swapChainImageFormat;
   vk::Extent2D m_swapChainExtent;
   std::vector<vk::ImageView> m_swapChainImageViews;
+  vk::PipelineLayout m_pipelineLayout;
 
   void initWindow();
   void initVulkan();

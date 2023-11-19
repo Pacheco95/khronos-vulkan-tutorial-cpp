@@ -8,8 +8,10 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
   This configuration compiles the shaders automatically only if not already compiled or the source code was changed.
   It will generate the respective `.spv` bytecodes in the same **source directory**.
   Since these `.spv` files can be generated at anytime, we will ignore them at `.gitignore`.
-  > [!IMPORTANT]
-  > Be sure to set the working directory to the project root directory to correctly load the shaders
+
+> [!IMPORTANT]
+> Be sure to set the working directory to the project root directory to correctly load the shaders
+
 - Created a `BinaryLoader` class to read our compiled `.spv` shader bytecodes.
 - Added `[spdlog](https://github.com/gabime/spdlog)` as a dependency to help us log useful information during
   development phase.
@@ -17,6 +19,7 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
   which is very handy for handling string interpolation.
 - Also added some code at `main.cpp` to configure the logger based on `SPDLOG_ACTIVE_LEVEL` compiler definition.
   `SPDLOG_ACTIVE_LEVEL` is set to `warning` in release builds.
+  https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/blob/e0dafccdc7f6c8ff3b82f090df7d3f5fd062b0bd/CMakeLists.txt#L78
 
 # Navigation
 

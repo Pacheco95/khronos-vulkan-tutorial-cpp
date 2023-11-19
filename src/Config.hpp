@@ -25,4 +25,6 @@ struct Config {
       vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
       vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
       vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
+
+  static const std::vector<const char*> DEVICE_EXTENSIONS;
 };

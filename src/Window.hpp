@@ -9,13 +9,18 @@
 class Window {
  public:
   Window() = default;
-  Window(uint16_t width, uint16_t height, const std::string& title);
   ~Window();
 
   void create(uint16_t width, uint16_t height, const std::string& title);
-  bool shouldClose();
+
+  [[nodiscard]] bool shouldClose() const;
+
   void pollEvents();
-  vk::SurfaceKHR createSurface(const vk::Instance& instance);
+
+  [[nodiscard]] vk::SurfaceKHR createSurface(const vk::Instance& instance
+  ) const;
+
+  [[nodiscard]] vk::Extent2D getExtent() const;
 
  private:
   GLFWwindow* m_window = nullptr;

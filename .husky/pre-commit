@@ -2,7 +2,12 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 
-FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(src|include)/.+\.(cpp|h|cxx|hxx|hpp|c|inl)$')
+FILES=$(
+  git diff --cached --name-only --diff-filter=ACMR |
+  grep -E '(src|include)/.+\.(cpp|h|cxx|hxx|hpp|c|inl)$' |
+  true
+)
+
 [ -z "$FILES" ] && exit 0
 
 echo "$FILES" | xargs clang-format -i

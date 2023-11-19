@@ -27,3 +27,4 @@ and current step.
     * [Image views](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/03-image-views)
 * Graphics pipeline basics
     * [Shader modules](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/02-shader-modules)
+    * [Fixed functions](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/03-fixed-functions)

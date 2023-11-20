@@ -38,6 +38,8 @@ class Application {
   vk::PipelineLayout m_pipelineLayout;
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
+  vk::CommandPool m_commandPool;
+  vk::CommandBuffer m_commandBuffer;  // Destroyed by command pool
 
   void initWindow();
   void initVulkan();
@@ -54,6 +56,8 @@ class Application {
   void createRenderPass();
   void createGraphicsPipeline();
   void createFrameBuffers();
+  void createCommandPool();
+  void createCommandBuffer();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 
@@ -80,4 +84,8 @@ class Application {
   [[nodiscard]] vk::ShaderModule createShaderModule(
       const std::vector<char>& code
   ) const;
+
+  void recordCommandBuffer(
+      const vk::CommandBuffer& commandBuffer, uint32_t imageIndex
+  );
 };

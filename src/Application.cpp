@@ -32,6 +32,8 @@ void Application::initVulkan() {
   createRenderPass();
   createGraphicsPipeline();
   createFrameBuffers();
+  createCommandPool();
+  createCommandBuffer();
 }
 
 void Application::mainLoop() {
@@ -41,6 +43,7 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  m_device.destroy(m_commandPool);
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
   }
@@ -353,7 +356,6 @@ void Application::createFrameBuffers() {
   m_swapChainFrameBuffers.resize(m_swapChainImageViews.size());
 
   for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
-
     const auto& framebufferInfo =
         vk::FramebufferCreateInfo()
             .setRenderPass(m_renderPass)
@@ -364,6 +366,28 @@ void Application::createFrameBuffers() {
 
     m_swapChainFrameBuffers[i] = m_device.createFramebuffer(framebufferInfo);
   }
+}
+
+void Application::createCommandPool() {
+  const QueueFamily::Indices& queueFamilyIndices =
+      QueueFamily::findIndices(m_physicalDevice, m_surface);
+
+  const auto& poolInfo =
+      vk::CommandPoolCreateInfo()
+          .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
+          .setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
+
+  m_commandPool = m_device.createCommandPool(poolInfo);
+}
+
+void Application::createCommandBuffer() {
+  const auto& allocInfo =
+      vk::CommandBufferAllocateInfo()
+          .setCommandPool(m_commandPool)
+          .setLevel(vk::CommandBufferLevel::ePrimary)
+          .setCommandBufferCount(1);
+
+  m_commandBuffer = m_device.allocateCommandBuffers(allocInfo).front();
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
@@ -470,4 +494,47 @@ vk::ShaderModule Application::createShaderModule(const std::vector<char>& code
   createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
   vk::ShaderModule shaderModule = m_device.createShaderModule(createInfo);
   return shaderModule;
+}
+
+void Application::recordCommandBuffer(
+    const vk::CommandBuffer& commandBuffer, uint32_t imageIndex
+) {
+  vk::CommandBufferBeginInfo beginInfo;
+
+  commandBuffer.begin(beginInfo);
+
+  vk::ClearValue clearColor{{0.0f, 0.0f, 0.0f, 1.0f}};
+  vk::Offset2D zeroOffset{0, 0};
+
+  const auto& renderPassInfo =
+      vk::RenderPassBeginInfo()
+          .setRenderPass(m_renderPass)
+          .setFramebuffer(m_swapChainFrameBuffers[imageIndex])
+          .setRenderArea({zeroOffset, m_swapChainExtent})
+          .setClearValueCount(1)
+          .setClearValues(clearColor);
+
+  commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+  commandBuffer.bindPipeline(
+      vk::PipelineBindPoint::eGraphics, m_graphicsPipeline
+  );
+
+  const auto& viewport =
+      vk::Viewport()
+          .setX(0.0f)
+          .setY(0.0f)
+          .setWidth((float)m_swapChainExtent.width)
+          .setHeight((float)m_swapChainExtent.height)
+          .setMinDepth(0.0f)
+          .setMaxDepth(1.0f);
+
+  commandBuffer.setViewport(0, viewport);
+
+  vk::Rect2D scissor = {zeroOffset, m_swapChainExtent};
+
+  commandBuffer.setScissor(0, scissor);
+  commandBuffer.draw(3, 1, 0, 0);
+  commandBuffer.endRenderPass();
+  commandBuffer.end();
 }

@@ -37,6 +37,7 @@ class Application {
   vk::RenderPass m_renderPass;
   vk::PipelineLayout m_pipelineLayout;
   vk::Pipeline m_graphicsPipeline;
+  std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
 
   void initWindow();
   void initVulkan();
@@ -52,6 +53,7 @@ class Application {
   void createImageViews();
   void createRenderPass();
   void createGraphicsPipeline();
+  void createFrameBuffers();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 

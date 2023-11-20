@@ -31,6 +31,7 @@ void Application::initVulkan() {
   createImageViews();
   createRenderPass();
   createGraphicsPipeline();
+  createFrameBuffers();
 }
 
 void Application::mainLoop() {
@@ -40,6 +41,9 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  for (const auto& frameBuffer : m_swapChainFrameBuffers) {
+    m_device.destroy(frameBuffer);
+  }
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
   m_device.destroy(m_renderPass);
@@ -343,6 +347,23 @@ void Application::createGraphicsPipeline() {
 
   m_device.destroy(vertShaderModule);
   m_device.destroy(fragShaderModule);
+}
+
+void Application::createFrameBuffers() {
+  m_swapChainFrameBuffers.resize(m_swapChainImageViews.size());
+
+  for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
+
+    const auto& framebufferInfo =
+        vk::FramebufferCreateInfo()
+            .setRenderPass(m_renderPass)
+            .setAttachments(m_swapChainImageViews[i])
+            .setWidth(m_swapChainExtent.width)
+            .setHeight(m_swapChainExtent.height)
+            .setLayers(1);
+
+    m_swapChainFrameBuffers[i] = m_device.createFramebuffer(framebufferInfo);
+  }
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {

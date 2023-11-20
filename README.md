@@ -12,8 +12,8 @@ I just replaced struct member assignments by fluent api calls (`.setX().setY()..
 [🌐 Original tutorial](
 https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/02_Fixed_functions.html)
 
-[⏮ Drawing a triangle / Presentation / Image views](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/03-image-views)
+[⏮ Drawing a triangle / Graphics pipeline basics / Shader modules](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/02-shader-modules)
 
 [⏭ Drawing a triangle / Graphics pipeline basics / Render passes](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/04-render-passes)

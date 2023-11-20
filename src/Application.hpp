@@ -34,6 +34,7 @@ class Application {
   vk::Format m_swapChainImageFormat;
   vk::Extent2D m_swapChainExtent;
   std::vector<vk::ImageView> m_swapChainImageViews;
+  vk::RenderPass m_renderPass;
   vk::PipelineLayout m_pipelineLayout;
 
   void initWindow();
@@ -48,6 +49,7 @@ class Application {
   void createLogicalDevice();
   void createSwapChain();
   void createImageViews();
+  void createRenderPass();
   void createGraphicsPipeline();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;

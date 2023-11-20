@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include <limits>
+#include <set>
 
 #include "BinaryLoader.hpp"
 #include "Config.hpp"
@@ -313,7 +314,7 @@ void Application::createGraphicsPipeline() {
           .setAttachments(colorBlendAttachment)
           .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
 
-  std::vector<vk::DynamicState> dynamicStates = {
+  std::vector dynamicStates = {
       vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
   const auto& dynamicState =
@@ -394,7 +395,7 @@ bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
   const auto& indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
 
-  bool suitableSwapChain;
+  bool suitableSwapChain = false;
 
   if (extensionsSupported) {
     SwapChainSupportDetails swapChainSupport =
@@ -524,8 +525,8 @@ void Application::recordCommandBuffer(
       vk::Viewport()
           .setX(0.0f)
           .setY(0.0f)
-          .setWidth((float)m_swapChainExtent.width)
-          .setHeight((float)m_swapChainExtent.height)
+          .setWidth(static_cast<float>(m_swapChainExtent.width))
+          .setHeight(static_cast<float>(m_swapChainExtent.height))
           .setMinDepth(0.0f)
           .setMaxDepth(1.0f);
 

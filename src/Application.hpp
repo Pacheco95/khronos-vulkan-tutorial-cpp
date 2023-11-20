@@ -10,7 +10,9 @@ class Application {
     std::vector<vk::SurfaceFormatKHR> formats;
     std::vector<vk::PresentModeKHR> presentModes;
 
-    SwapChainSupportDetails(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
+    SwapChainSupportDetails(
+        const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface
+    ) {
       capabilities = device.getSurfaceCapabilitiesKHR(surface);
       formats = device.getSurfaceFormatsKHR(surface);
       presentModes = device.getSurfacePresentModesKHR(surface);

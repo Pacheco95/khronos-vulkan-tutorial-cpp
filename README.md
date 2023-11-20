@@ -15,7 +15,7 @@ https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeli
 [⏮ Drawing a triangle / Presentation / Image views](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/02-presentation/03-image-views)
 
-[⏭ Drawing a triangle / Graphics pipeline basics / Fixed functions](
+[⏭ Drawing a triangle / Graphics pipeline basics / Render passes](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/04-render-passes)
 
 [🔄 Diff from previous step](

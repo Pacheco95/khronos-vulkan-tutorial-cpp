@@ -36,6 +36,7 @@ class Application {
   std::vector<vk::ImageView> m_swapChainImageViews;
   vk::RenderPass m_renderPass;
   vk::PipelineLayout m_pipelineLayout;
+  vk::Pipeline m_graphicsPipeline;
 
   void initWindow();
   void initVulkan();

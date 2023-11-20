@@ -29,6 +29,7 @@ void Application::initVulkan() {
   createLogicalDevice();
   createSwapChain();
   createImageViews();
+  createRenderPass();
   createGraphicsPipeline();
 }
 
@@ -40,6 +41,7 @@ void Application::mainLoop() {
 
 void Application::cleanup() {
   m_device.destroy(m_pipelineLayout);
+  m_device.destroy(m_renderPass);
   for (const auto& imageView : m_swapChainImageViews) {
     m_device.destroy(imageView);
   }
@@ -206,6 +208,36 @@ void Application::createImageViews() {
   }
 }
 
+void Application::createRenderPass() {
+  const auto& colorAttachment =
+      vk::AttachmentDescription()
+          .setFormat(m_swapChainImageFormat)
+          .setSamples(vk::SampleCountFlagBits::e1)
+          .setLoadOp(vk::AttachmentLoadOp::eClear)
+          .setStoreOp(vk::AttachmentStoreOp::eStore)
+          .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+          .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+          .setInitialLayout(vk::ImageLayout::eUndefined)
+          .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+  const auto& colorAttachmentRef =
+      vk::AttachmentReference().setAttachment(0).setLayout(
+          vk::ImageLayout::eColorAttachmentOptimal
+      );
+
+  const auto& subPass =
+      vk::SubpassDescription()
+          .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
+          .setColorAttachments(colorAttachmentRef);
+
+  const auto& renderPassInfo =
+      vk::RenderPassCreateInfo()
+          .setAttachments(colorAttachment)
+          .setSubpasses(subPass);
+
+  m_renderPass = m_device.createRenderPass(renderPassInfo);
+}
+
 void Application::createGraphicsPipeline() {
   auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
   auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
@@ -270,8 +302,7 @@ void Application::createGraphicsPipeline() {
       vk::PipelineColorBlendStateCreateInfo()
           .setLogicOpEnable(vk::False)
           .setLogicOp(vk::LogicOp::eCopy)
-          .setAttachmentCount(1)
-          .setPAttachments(&colorBlendAttachment)
+          .setAttachments(colorBlendAttachment)
           .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
 
   std::vector<vk::DynamicState> dynamicStates = {
@@ -279,8 +310,7 @@ void Application::createGraphicsPipeline() {
 
   const auto& dynamicState =
       vk::PipelineDynamicStateCreateInfo()
-          .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
-          .setPDynamicStates(dynamicStates.data());
+          .setDynamicStates(dynamicStates);
 
   const auto& pipelineLayoutInfo =
       vk::PipelineLayoutCreateInfo()

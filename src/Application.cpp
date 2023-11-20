@@ -40,6 +40,7 @@ void Application::mainLoop() {
 }
 
 void Application::cleanup() {
+  m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
   m_device.destroy(m_renderPass);
   for (const auto& imageView : m_swapChainImageViews) {
@@ -309,8 +310,7 @@ void Application::createGraphicsPipeline() {
       vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
   const auto& dynamicState =
-      vk::PipelineDynamicStateCreateInfo()
-          .setDynamicStates(dynamicStates);
+      vk::PipelineDynamicStateCreateInfo().setDynamicStates(dynamicStates);
 
   const auto& pipelineLayoutInfo =
       vk::PipelineLayoutCreateInfo()
@@ -318,6 +318,28 @@ void Application::createGraphicsPipeline() {
           .setPushConstantRangeCount(0);
 
   m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
+
+  const auto& pipelineInfo =
+      vk::GraphicsPipelineCreateInfo()
+          .setStages(shaderStages)
+          .setPVertexInputState(&vertexInputInfo)
+          .setPInputAssemblyState(&inputAssembly)
+          .setPViewportState(&viewportState)
+          .setPRasterizationState(&rasterizer)
+          .setPMultisampleState(&multisampling)
+          .setPColorBlendState(&colorBlending)
+          .setPDynamicState(&dynamicState)
+          .setLayout(m_pipelineLayout)
+          .setRenderPass(m_renderPass)
+          .setSubpass(0)
+          .setBasePipelineHandle(VK_NULL_HANDLE);
+
+  vk::Result createPipelineResult;
+
+  std::tie(createPipelineResult, m_graphicsPipeline) =
+      m_device.createGraphicsPipeline({}, pipelineInfo);
+
+  vk::resultCheck(createPipelineResult, "Failed to create graphics pipeline");
 
   m_device.destroy(vertShaderModule);
   m_device.destroy(fragShaderModule);

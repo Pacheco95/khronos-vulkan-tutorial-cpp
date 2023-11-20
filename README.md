@@ -20,7 +20,7 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 [🌐 Original tutorial](
 https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/04_Conclusion.html)
 
-[⏮ Drawing a triangle / Presentation / Render passes](
+[⏮ Drawing a triangle / Graphics pipeline basics / Render passes](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/04-render-passes)
 
 [⏭ Drawing a triangle / Drawing / Frame buffers](

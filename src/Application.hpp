@@ -41,10 +41,11 @@ class Application {
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
-  vk::CommandBuffer m_commandBuffer;  // Destroyed by command pool
-  vk::Semaphore m_imageAvailableSemaphore;
-  vk::Semaphore m_renderFinishedSemaphore;
-  vk::Fence m_inFlightFence;
+  std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool
+  std::vector<vk::Semaphore> m_imageAvailableSemaphores;
+  std::vector<vk::Semaphore> m_renderFinishedSemaphores;
+  std::vector<vk::Fence> m_inFlightFences;
+  uint32_t m_currentFrame = 0;
 
   void initWindow();
   void initVulkan();
@@ -63,7 +64,7 @@ class Application {
   void createGraphicsPipeline();
   void createFrameBuffers();
   void createCommandPool();
-  void createCommandBuffer();
+  void createCommandBuffers();
   void createSyncObjects();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;

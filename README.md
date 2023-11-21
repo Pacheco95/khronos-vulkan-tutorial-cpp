@@ -4,6 +4,8 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
+- Fixed a bug in the pre-commit hook which was failing in some scenarios and preventing finish commits.
+
 # Navigation
 
 [🌐 Original tutorial](

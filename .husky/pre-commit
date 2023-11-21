@@ -2,15 +2,18 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 
-FILES=$(
-  git diff --cached --name-only --diff-filter=ACMR |
-  grep -E '(src|include)/.+\.(cpp|h|cxx|hxx|hpp|c|inl)$' |
-  true
-)
+FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
-[ -z "$FILES" ] && exit 0
+if [ -z "$FILES" ]; then
+  exit 0
+fi
 
-echo "$FILES" | xargs clang-format -i
+SRC_FILES=$(echo "$FILES" | grep -E '(src|include)/.+\.(hpp|cpp|h|cxx|hxx|c|inl)$' || true)
+
+if ! [ -z "$SRC_FILES" ]; then
+  echo "$SRC_FILES" | xargs clang-format -i
+fi
+
 echo "$FILES" | xargs git add
 
 exit 0

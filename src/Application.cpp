@@ -9,6 +9,8 @@
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
 
+constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+
 void Application::run() {
   initWindow();
   initVulkan();
@@ -35,15 +37,59 @@ void Application::initVulkan() {
   createFrameBuffers();
   createCommandPool();
   createCommandBuffer();
+  createSyncObjects();
 }
 
 void Application::mainLoop() {
   while (!m_window.shouldClose()) {
     m_window.pollEvents();
+    drawFrame();
   }
+
+  m_device.waitIdle();
+}
+
+void Application::drawFrame() {
+  (void)m_device.waitForFences(m_inFlightFence, vk::True, NO_TIMEOUT);
+  m_device.resetFences(m_inFlightFence);
+
+
+  vk::ResultValue acquireResult = m_device.acquireNextImageKHR(
+      m_swapChain, NO_TIMEOUT, m_imageAvailableSemaphore
+  );
+
+  uint32_t imageIndex = acquireResult.value;
+
+  m_commandBuffer.reset();
+  recordCommandBuffer(m_commandBuffer, imageIndex);
+
+  const vk::PipelineStageFlags waitStages{
+      vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+  const auto signalSemaphores = {m_renderFinishedSemaphore};
+
+  const auto& submitInfo =
+      vk::SubmitInfo()
+          .setWaitSemaphores(m_imageAvailableSemaphore)
+          .setWaitDstStageMask(waitStages)
+          .setCommandBuffers(m_commandBuffer)
+          .setSignalSemaphores(signalSemaphores);
+
+  m_graphicsQueue.submit(submitInfo, m_inFlightFence);
+
+  const auto& presentInfo =
+      vk::PresentInfoKHR()
+          .setWaitSemaphores(signalSemaphores)
+          .setSwapchains(m_swapChain)
+          .setImageIndices(imageIndex);
+
+  (void)m_presentQueue.presentKHR(presentInfo);
 }
 
 void Application::cleanup() {
+  m_device.destroy(m_inFlightFence);
+  m_device.destroy(m_renderFinishedSemaphore);
+  m_device.destroy(m_imageAvailableSemaphore);
   m_device.destroy(m_commandPool);
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
@@ -239,10 +285,20 @@ void Application::createRenderPass() {
           .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
           .setColorAttachments(colorAttachmentRef);
 
+  const auto& dependency =
+      vk::SubpassDependency()
+          .setSrcSubpass(vk::SubpassExternal)
+          .setDstSubpass(0)
+          .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+          .setSrcAccessMask({})
+          .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+          .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
+
   const auto& renderPassInfo =
       vk::RenderPassCreateInfo()
           .setAttachments(colorAttachment)
-          .setSubpasses(subPass);
+          .setSubpasses(subPass)
+          .setDependencies(dependency);
 
   m_renderPass = m_device.createRenderPass(renderPassInfo);
 }
@@ -389,6 +445,12 @@ void Application::createCommandBuffer() {
           .setCommandBufferCount(1);
 
   m_commandBuffer = m_device.allocateCommandBuffers(allocInfo).front();
+}
+
+void Application::createSyncObjects() {
+  m_imageAvailableSemaphore = m_device.createSemaphore({});
+  m_renderFinishedSemaphore = m_device.createSemaphore({});
+  m_inFlightFence = m_device.createFence({vk::FenceCreateFlagBits::eSignaled});
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {

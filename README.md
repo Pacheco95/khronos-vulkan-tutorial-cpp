@@ -15,7 +15,7 @@ https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/03_Drawing/03_Fram
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation)
 
 [⏭ Drawing a triangle / Swap chain recreation](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/05-rendering-and-presentation)
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/05-swapchain-recreation)
 
 [🔄 Diff from previous step](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation...linux/02-drawing-triangle/04-drawing/04-frames-in-flight)

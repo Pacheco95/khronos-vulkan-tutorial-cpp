@@ -36,7 +36,7 @@ void Application::initVulkan() {
   createGraphicsPipeline();
   createFrameBuffers();
   createCommandPool();
-  createCommandBuffer();
+  createCommandBuffers();
   createSyncObjects();
 }
 
@@ -44,38 +44,45 @@ void Application::mainLoop() {
   while (!m_window.shouldClose()) {
     m_window.pollEvents();
     drawFrame();
+    m_currentFrame = (m_currentFrame + 1) % Config::MAX_FRAMES_IN_FLIGHT;
   }
 
   m_device.waitIdle();
 }
 
 void Application::drawFrame() {
-  (void)m_device.waitForFences(m_inFlightFence, vk::True, NO_TIMEOUT);
-  m_device.resetFences(m_inFlightFence);
+  vk::Fence& inFlightFence = m_inFlightFences[m_currentFrame];
+  vk::CommandBuffer& commandBuffer = m_commandBuffers[m_currentFrame];
+  vk::Semaphore& imageAvailableSemaphore =
+      m_imageAvailableSemaphores[m_currentFrame];
+  vk::Semaphore& renderFinishedSemaphore =
+      m_renderFinishedSemaphores[m_currentFrame];
 
+  (void)m_device.waitForFences(inFlightFence, vk::True, NO_TIMEOUT);
+  m_device.resetFences(inFlightFence);
 
   vk::ResultValue acquireResult = m_device.acquireNextImageKHR(
-      m_swapChain, NO_TIMEOUT, m_imageAvailableSemaphore
+      m_swapChain, NO_TIMEOUT, imageAvailableSemaphore
   );
 
   uint32_t imageIndex = acquireResult.value;
 
-  m_commandBuffer.reset();
-  recordCommandBuffer(m_commandBuffer, imageIndex);
+  commandBuffer.reset();
+  recordCommandBuffer(commandBuffer, imageIndex);
 
   const vk::PipelineStageFlags waitStages{
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-  const auto signalSemaphores = {m_renderFinishedSemaphore};
+  const auto signalSemaphores = {renderFinishedSemaphore};
 
   const auto& submitInfo =
       vk::SubmitInfo()
-          .setWaitSemaphores(m_imageAvailableSemaphore)
+          .setWaitSemaphores(imageAvailableSemaphore)
           .setWaitDstStageMask(waitStages)
-          .setCommandBuffers(m_commandBuffer)
+          .setCommandBuffers(commandBuffer)
           .setSignalSemaphores(signalSemaphores);
 
-  m_graphicsQueue.submit(submitInfo, m_inFlightFence);
+  m_graphicsQueue.submit(submitInfo, inFlightFence);
 
   const auto& presentInfo =
       vk::PresentInfoKHR()
@@ -87,9 +94,11 @@ void Application::drawFrame() {
 }
 
 void Application::cleanup() {
-  m_device.destroy(m_inFlightFence);
-  m_device.destroy(m_renderFinishedSemaphore);
-  m_device.destroy(m_imageAvailableSemaphore);
+  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
+    m_device.destroy(m_inFlightFences[i]);
+    m_device.destroy(m_renderFinishedSemaphores[i]);
+    m_device.destroy(m_imageAvailableSemaphores[i]);
+  }
   m_device.destroy(m_commandPool);
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
@@ -437,20 +446,30 @@ void Application::createCommandPool() {
   m_commandPool = m_device.createCommandPool(poolInfo);
 }
 
-void Application::createCommandBuffer() {
+void Application::createCommandBuffers() {
+  m_commandBuffers.resize(Config::MAX_FRAMES_IN_FLIGHT);
+
   const auto& allocInfo =
       vk::CommandBufferAllocateInfo()
           .setCommandPool(m_commandPool)
           .setLevel(vk::CommandBufferLevel::ePrimary)
-          .setCommandBufferCount(1);
+          .setCommandBufferCount(Config::MAX_FRAMES_IN_FLIGHT);
 
-  m_commandBuffer = m_device.allocateCommandBuffers(allocInfo).front();
+  m_commandBuffers = m_device.allocateCommandBuffers(allocInfo);
 }
 
 void Application::createSyncObjects() {
-  m_imageAvailableSemaphore = m_device.createSemaphore({});
-  m_renderFinishedSemaphore = m_device.createSemaphore({});
-  m_inFlightFence = m_device.createFence({vk::FenceCreateFlagBits::eSignaled});
+  m_imageAvailableSemaphores.resize(Config::MAX_FRAMES_IN_FLIGHT);
+  m_renderFinishedSemaphores.resize(Config::MAX_FRAMES_IN_FLIGHT);
+  m_inFlightFences.resize(Config::MAX_FRAMES_IN_FLIGHT);
+
+  vk::FenceCreateFlagBits fenceFlags = vk::FenceCreateFlagBits::eSignaled;
+
+  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
+    m_imageAvailableSemaphores[i] = m_device.createSemaphore({});
+    m_renderFinishedSemaphores[i] = m_device.createSemaphore({});
+    m_inFlightFences[i] = m_device.createFence({fenceFlags});
+  }
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {

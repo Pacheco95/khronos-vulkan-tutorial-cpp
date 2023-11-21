@@ -27,4 +27,6 @@ struct Config {
       vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
 
   static const std::vector<const char*> DEVICE_EXTENSIONS;
+
+  static constexpr uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 };

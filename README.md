@@ -33,3 +33,4 @@ and current step.
 * Drawing
   * [Frame buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/01-frame-buffers)
   * [Command buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/02-command-buffers)
+  * [Rendering and presentation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation)

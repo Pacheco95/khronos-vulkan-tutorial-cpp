@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Config.hpp"
+
 /**
  * These functions are not automatically loaded by the Vulkan loader.
  * That's why we created

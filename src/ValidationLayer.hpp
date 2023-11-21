@@ -2,8 +2,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Config.hpp"
-
 class ValidationLayer {
  public:
   static bool checkValidationLayerSupport();

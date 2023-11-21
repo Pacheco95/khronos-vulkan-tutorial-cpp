@@ -10,7 +10,9 @@ class Application {
     std::vector<vk::SurfaceFormatKHR> formats;
     std::vector<vk::PresentModeKHR> presentModes;
 
-    SwapChainSupportDetails(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
+    SwapChainSupportDetails(
+        const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface
+    ) {
       capabilities = device.getSurfaceCapabilitiesKHR(surface);
       formats = device.getSurfaceFormatsKHR(surface);
       presentModes = device.getSurfacePresentModesKHR(surface);
@@ -40,10 +42,14 @@ class Application {
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
   vk::CommandBuffer m_commandBuffer;  // Destroyed by command pool
+  vk::Semaphore m_imageAvailableSemaphore;
+  vk::Semaphore m_renderFinishedSemaphore;
+  vk::Fence m_inFlightFence;
 
   void initWindow();
   void initVulkan();
   void mainLoop();
+  void drawFrame();
   void cleanup();
 
   void createInstance();
@@ -58,6 +64,7 @@ class Application {
   void createFrameBuffers();
   void createCommandPool();
   void createCommandBuffer();
+  void createSyncObjects();
 
   [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
 

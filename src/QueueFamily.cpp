@@ -1,5 +1,7 @@
 #include "QueueFamily.hpp"
 
+#include <set>
+
 using Indices = QueueFamily::Indices;
 
 bool Indices::isComplete() const {

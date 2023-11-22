@@ -20,9 +20,10 @@ void Application::run() {
 }
 
 void Application::initWindow() {
-  const auto resizeCallback = [this](int width, int height) {
-    m_framebufferResized = true;
-  };
+  const auto resizeCallback =
+      [this]([[maybe_unused]] int width, [[maybe_unused]] int height) {
+        m_framebufferResized = true;
+      };
 
   m_window.create(
       Config::WINDOW_WIDTH,
@@ -301,7 +302,7 @@ void Application::cleanupSwapChain() {
 void Application::createImageViews() {
   m_swapChainImageViews.resize(m_swapChainImages.size());
 
-  for (int i = 0; i < m_swapChainImages.size(); ++i) {
+  for (size_t i = 0; i < m_swapChainImages.size(); ++i) {
     const auto createInfo =
         vk::ImageViewCreateInfo()
             .setImage(m_swapChainImages[i])

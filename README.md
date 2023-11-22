@@ -4,7 +4,7 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
-> ![CAUTION]
+> [!CAUTION]
 > All usages of temporary bound to function calls (`const auto& = func()`) were removed.
 > Since I was compiling the code with `CLang 17`, everything was working just fine.
 > When I tried to compile with `GCC 11.4.0` the application crashed with segmentation faults.
@@ -13,6 +13,9 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 > See
 > * https://github.com/KhronosGroup/Vulkan-Hpp/issues/1736
 > * https://stackoverflow.com/questions/17362673/temporary-lifetime-extension
+
+- Added extra warning & error compiler flags.
+- Fixed compiler warnings.
 
 # Navigation
 

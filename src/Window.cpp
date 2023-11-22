@@ -8,16 +8,24 @@ Window::~Window() {
   glfwTerminate();
 }
 
-void Window::create(uint16_t width, uint16_t height, const std::string& title) {
+void Window::create(
+    uint16_t width,
+    uint16_t height,
+    const std::string& title,
+    const ResizeCallback& resizeCallback
+) {
   if (m_window) {
     return;
   }
 
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+  m_resizeCallback = resizeCallback;
+
+  glfwSetWindowUserPointer(m_window, this);
+  glfwSetFramebufferSizeCallback(m_window, onFramebufferResize);
 }
 
 bool Window::shouldClose() const { return glfwWindowShouldClose(m_window); }
@@ -45,4 +53,17 @@ vk::Extent2D Window::getExtent() const {
       static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
   return actualExtent;
+}
+
+bool Window::isMinimized() const {
+  return glfwGetWindowAttrib(m_window, GLFW_ICONIFIED) == GLFW_TRUE;
+}
+
+void Window::onFramebufferResize(GLFWwindow* window, int width, int height) {
+  const auto instance =
+      reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+
+  if (instance->m_resizeCallback) {
+    instance->m_resizeCallback(width, height);
+  }
 }

@@ -1,5 +1,6 @@
 #include "Application.hpp"
 
+#include <functional>
 #include <limits>
 #include <set>
 
@@ -19,8 +20,15 @@ void Application::run() {
 }
 
 void Application::initWindow() {
+  const auto& resizeCallback = [this](int width, int height) {
+    m_framebufferResized = true;
+  };
+
   m_window.create(
-      Config::WINDOW_WIDTH, Config::WINDOW_HEIGHT, Config::WINDOW_TITLE
+      Config::WINDOW_WIDTH,
+      Config::WINDOW_HEIGHT,
+      Config::WINDOW_TITLE,
+      resizeCallback
   );
 }
 
@@ -43,8 +51,10 @@ void Application::initVulkan() {
 void Application::mainLoop() {
   while (!m_window.shouldClose()) {
     m_window.pollEvents();
-    drawFrame();
-    m_currentFrame = (m_currentFrame + 1) % Config::MAX_FRAMES_IN_FLIGHT;
+
+    if (!m_window.isMinimized()) {
+      drawFrame();
+    }
   }
 
   m_device.waitIdle();
@@ -59,13 +69,24 @@ void Application::drawFrame() {
       m_renderFinishedSemaphores[m_currentFrame];
 
   (void)m_device.waitForFences(inFlightFence, vk::True, NO_TIMEOUT);
-  m_device.resetFences(inFlightFence);
 
-  vk::ResultValue acquireResult = m_device.acquireNextImageKHR(
+  uint32_t imageIndex;
+  vk::Result result;
+
+  std::tie(result, imageIndex) = m_device.acquireNextImageKHR(
       m_swapChain, NO_TIMEOUT, imageAvailableSemaphore
   );
 
-  uint32_t imageIndex = acquireResult.value;
+  if (result == vk::Result::eErrorOutOfDateKHR) {
+    recreateSwapChain();
+    return;
+  }
+
+  if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+    vk::resultCheck(result, "Failed to acquire swap chain image");
+  }
+
+  m_device.resetFences(inFlightFence);
 
   commandBuffer.reset();
   recordCommandBuffer(commandBuffer, imageIndex);
@@ -90,26 +111,31 @@ void Application::drawFrame() {
           .setSwapchains(m_swapChain)
           .setImageIndices(imageIndex);
 
-  (void)m_presentQueue.presentKHR(presentInfo);
+  result = m_presentQueue.presentKHR(presentInfo);
+
+  if (result == vk::Result::eErrorOutOfDateKHR ||
+      result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
+    m_framebufferResized = false;
+    recreateSwapChain();
+  }
+
+  vk::resultCheck(result, "Failed to present swap chain image");
+
+  m_currentFrame = (m_currentFrame + 1) % Config::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Application::cleanup() {
+  cleanupSwapChain();
+
   for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
     m_device.destroy(m_inFlightFences[i]);
     m_device.destroy(m_renderFinishedSemaphores[i]);
     m_device.destroy(m_imageAvailableSemaphores[i]);
   }
   m_device.destroy(m_commandPool);
-  for (const auto& frameBuffer : m_swapChainFrameBuffers) {
-    m_device.destroy(frameBuffer);
-  }
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
   m_device.destroy(m_renderPass);
-  for (const auto& imageView : m_swapChainImageViews) {
-    m_device.destroy(imageView);
-  }
-  m_device.destroy(m_swapChain);
   m_device.destroy();
   m_instance.destroy(m_surface);
   m_instance.destroy(m_debugMessenger);
@@ -250,13 +276,35 @@ void Application::createSwapChain() {
   m_swapChainExtent = extent;
 }
 
-void Application::createImageViews() {
-  m_swapChainImageViews.reserve(m_swapChainImages.size());
+void Application::recreateSwapChain() {
+  m_device.waitIdle();
 
-  for (const auto& m_swapChainImage : m_swapChainImages) {
+  cleanupSwapChain();
+
+  createSwapChain();
+  createImageViews();
+  createFrameBuffers();
+}
+
+void Application::cleanupSwapChain() {
+  for (const auto& frameBuffer : m_swapChainFrameBuffers) {
+    m_device.destroy(frameBuffer);
+  }
+
+  for (const auto& imageView : m_swapChainImageViews) {
+    m_device.destroy(imageView);
+  }
+
+  m_device.destroy(m_swapChain);
+}
+
+void Application::createImageViews() {
+  m_swapChainImageViews.resize(m_swapChainImages.size());
+
+  for (int i = 0; i < m_swapChainImages.size(); ++i) {
     const auto& createInfo =
         vk::ImageViewCreateInfo()
-            .setImage(m_swapChainImage)
+            .setImage(m_swapChainImages[i])
             .setViewType(vk::ImageViewType::e2D)
             .setFormat(m_swapChainImageFormat)
             .setSubresourceRange(
@@ -268,7 +316,7 @@ void Application::createImageViews() {
                     .setLayerCount(1)
             );
 
-    m_swapChainImageViews.emplace_back(m_device.createImageView(createInfo));
+    m_swapChainImageViews[i] = m_device.createImageView(createInfo);
   }
 }
 

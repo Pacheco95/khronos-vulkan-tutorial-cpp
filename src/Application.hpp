@@ -46,6 +46,7 @@ class Application {
   std::vector<vk::Semaphore> m_renderFinishedSemaphores;
   std::vector<vk::Fence> m_inFlightFences;
   uint32_t m_currentFrame = 0;
+  bool m_framebufferResized = false;
 
   void initWindow();
   void initVulkan();
@@ -59,6 +60,8 @@ class Application {
   void pickPhysicalDevice();
   void createLogicalDevice();
   void createSwapChain();
+  void recreateSwapChain();
+  void cleanupSwapChain();
   void createImageViews();
   void createRenderPass();
   void createGraphicsPipeline();

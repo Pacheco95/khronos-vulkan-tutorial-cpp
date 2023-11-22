@@ -9,8 +9,14 @@
 #include "QueueFamily.hpp"
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
+#include "Vertex.hpp"
 
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+
+const std::vector<Vertex> VERTICES = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
 void Application::run() {
   initWindow();
@@ -20,9 +26,10 @@ void Application::run() {
 }
 
 void Application::initWindow() {
-  const auto& resizeCallback = [this](int width, int height) {
-    m_framebufferResized = true;
-  };
+  const auto resizeCallback =
+      [this]([[maybe_unused]] int width, [[maybe_unused]] int height) {
+        m_framebufferResized = true;
+      };
 
   m_window.create(
       Config::WINDOW_WIDTH,
@@ -96,7 +103,7 @@ void Application::drawFrame() {
 
   const auto signalSemaphores = {renderFinishedSemaphore};
 
-  const auto& submitInfo =
+  const auto submitInfo =
       vk::SubmitInfo()
           .setWaitSemaphores(imageAvailableSemaphore)
           .setWaitDstStageMask(waitStages)
@@ -105,7 +112,7 @@ void Application::drawFrame() {
 
   m_graphicsQueue.submit(submitInfo, inFlightFence);
 
-  const auto& presentInfo =
+  const auto presentInfo =
       vk::PresentInfoKHR()
           .setWaitSemaphores(signalSemaphores)
           .setSwapchains(m_swapChain)
@@ -215,11 +222,11 @@ void Application::pickPhysicalDevice() {
 }
 
 void Application::createLogicalDevice() {
-  const auto& indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
-  const auto& queueCreateInfos = indices.getQueueCreateInfos();
+  const auto indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
+  const auto queueCreateInfos = indices.getQueueCreateInfos();
   vk::PhysicalDeviceFeatures deviceFeatures;
 
-  const auto& deviceCreateInfo =
+  const auto deviceCreateInfo =
       vk::DeviceCreateInfo()
           .setQueueCreateInfos(queueCreateInfos)
           .setPEnabledFeatures(&deviceFeatures)
@@ -258,7 +265,7 @@ void Application::createSwapChain() {
           .setPresentMode(presentMode)
           .setClipped(vk::True);
 
-  const auto& indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
+  const auto indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
 
   uint32_t queueFamilyIndices[] = {
       indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -301,8 +308,8 @@ void Application::cleanupSwapChain() {
 void Application::createImageViews() {
   m_swapChainImageViews.resize(m_swapChainImages.size());
 
-  for (int i = 0; i < m_swapChainImages.size(); ++i) {
-    const auto& createInfo =
+  for (size_t i = 0; i < m_swapChainImages.size(); ++i) {
+    const auto createInfo =
         vk::ImageViewCreateInfo()
             .setImage(m_swapChainImages[i])
             .setViewType(vk::ImageViewType::e2D)
@@ -321,7 +328,7 @@ void Application::createImageViews() {
 }
 
 void Application::createRenderPass() {
-  const auto& colorAttachment =
+  const auto colorAttachment =
       vk::AttachmentDescription()
           .setFormat(m_swapChainImageFormat)
           .setSamples(vk::SampleCountFlagBits::e1)
@@ -332,17 +339,17 @@ void Application::createRenderPass() {
           .setInitialLayout(vk::ImageLayout::eUndefined)
           .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-  const auto& colorAttachmentRef =
+  const auto colorAttachmentRef =
       vk::AttachmentReference().setAttachment(0).setLayout(
           vk::ImageLayout::eColorAttachmentOptimal
       );
 
-  const auto& subPass =
+  const auto subPass =
       vk::SubpassDescription()
           .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
           .setColorAttachments(colorAttachmentRef);
 
-  const auto& dependency =
+  const auto dependency =
       vk::SubpassDependency()
           .setSrcSubpass(vk::SubpassExternal)
           .setDstSubpass(0)
@@ -351,7 +358,7 @@ void Application::createRenderPass() {
           .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
           .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
 
-  const auto& renderPassInfo =
+  const auto renderPassInfo =
       vk::RenderPassCreateInfo()
           .setAttachments(colorAttachment)
           .setSubpasses(subPass)
@@ -367,13 +374,13 @@ void Application::createGraphicsPipeline() {
   vk::ShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   vk::ShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
-  const auto& vertShaderStageInfo =
+  const auto vertShaderStageInfo =
       vk::PipelineShaderStageCreateInfo()
           .setStage(vk::ShaderStageFlagBits::eVertex)
           .setModule(vertShaderModule)
           .setPName("main");
 
-  const auto& fragShaderStageInfo =
+  const auto fragShaderStageInfo =
       vk::PipelineShaderStageCreateInfo()
           .setStage(vk::ShaderStageFlagBits::eFragment)
           .setModule(fragShaderModule)
@@ -382,22 +389,25 @@ void Application::createGraphicsPipeline() {
   vk::PipelineShaderStageCreateInfo shaderStages[]{
       vertShaderStageInfo, fragShaderStageInfo};
 
-  const auto& vertexInputInfo =
-      vk::PipelineVertexInputStateCreateInfo()
-          .setVertexBindingDescriptionCount(0)
-          .setVertexAttributeDescriptionCount(0);
+  auto bindingDescription = Vertex::getBindingDescription();
+  auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-  const auto& inputAssembly =
+  const auto vertexInputInfo =
+      vk::PipelineVertexInputStateCreateInfo()
+          .setVertexBindingDescriptions(bindingDescription)
+          .setVertexAttributeDescriptions(attributeDescriptions);
+
+  const auto inputAssembly =
       vk::PipelineInputAssemblyStateCreateInfo()
           .setTopology(vk::PrimitiveTopology::eTriangleList)
           .setPrimitiveRestartEnable(vk::False);
 
-  const auto& viewportState =
+  const auto viewportState =
       vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(
           1
       );
 
-  const auto& rasterizer =
+  const auto rasterizer =
       vk::PipelineRasterizationStateCreateInfo()
           .setDepthClampEnable(vk::False)
           .setRasterizerDiscardEnable(vk::False)
@@ -407,12 +417,12 @@ void Application::createGraphicsPipeline() {
           .setFrontFace(vk::FrontFace::eClockwise)
           .setDepthBiasEnable(vk::False);
 
-  const auto& multisampling =
+  const auto multisampling =
       vk::PipelineMultisampleStateCreateInfo()
           .setSampleShadingEnable(vk::False)
           .setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
-  const auto& colorBlendAttachment =
+  const auto colorBlendAttachment =
       vk::PipelineColorBlendAttachmentState()
           .setColorWriteMask(
               vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
@@ -420,7 +430,7 @@ void Application::createGraphicsPipeline() {
           )
           .setBlendEnable(vk::False);
 
-  const auto& colorBlending =
+  const auto colorBlending =
       vk::PipelineColorBlendStateCreateInfo()
           .setLogicOpEnable(vk::False)
           .setLogicOp(vk::LogicOp::eCopy)
@@ -430,17 +440,17 @@ void Application::createGraphicsPipeline() {
   std::vector dynamicStates = {
       vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
-  const auto& dynamicState =
+  const auto dynamicState =
       vk::PipelineDynamicStateCreateInfo().setDynamicStates(dynamicStates);
 
-  const auto& pipelineLayoutInfo =
+  const auto pipelineLayoutInfo =
       vk::PipelineLayoutCreateInfo()
           .setSetLayoutCount(0)
           .setPushConstantRangeCount(0);
 
   m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
 
-  const auto& pipelineInfo =
+  const auto pipelineInfo =
       vk::GraphicsPipelineCreateInfo()
           .setStages(shaderStages)
           .setPVertexInputState(&vertexInputInfo)
@@ -470,7 +480,7 @@ void Application::createFrameBuffers() {
   m_swapChainFrameBuffers.resize(m_swapChainImageViews.size());
 
   for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
-    const auto& framebufferInfo =
+    const auto framebufferInfo =
         vk::FramebufferCreateInfo()
             .setRenderPass(m_renderPass)
             .setAttachments(m_swapChainImageViews[i])
@@ -486,7 +496,7 @@ void Application::createCommandPool() {
   const QueueFamily::Indices& queueFamilyIndices =
       QueueFamily::findIndices(m_physicalDevice, m_surface);
 
-  const auto& poolInfo =
+  const auto poolInfo =
       vk::CommandPoolCreateInfo()
           .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
           .setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
@@ -497,7 +507,7 @@ void Application::createCommandPool() {
 void Application::createCommandBuffers() {
   m_commandBuffers.resize(Config::MAX_FRAMES_IN_FLIGHT);
 
-  const auto& allocInfo =
+  const auto allocInfo =
       vk::CommandBufferAllocateInfo()
           .setCommandPool(m_commandPool)
           .setLevel(vk::CommandBufferLevel::ePrimary)
@@ -521,7 +531,7 @@ void Application::createSyncObjects() {
 }
 
 bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
-  const auto& indices = QueueFamily::findIndices(device, m_surface);
+  const auto indices = QueueFamily::findIndices(device, m_surface);
   bool extensionsSupported = checkDeviceExtensionSupport(device);
 
   bool suitableSwapChain = false;
@@ -636,7 +646,7 @@ void Application::recordCommandBuffer(
   vk::ClearValue clearColor{{0.0f, 0.0f, 0.0f, 1.0f}};
   vk::Offset2D zeroOffset{0, 0};
 
-  const auto& renderPassInfo =
+  const auto renderPassInfo =
       vk::RenderPassBeginInfo()
           .setRenderPass(m_renderPass)
           .setFramebuffer(m_swapChainFrameBuffers[imageIndex])
@@ -650,7 +660,7 @@ void Application::recordCommandBuffer(
       vk::PipelineBindPoint::eGraphics, m_graphicsPipeline
   );
 
-  const auto& viewport =
+  const auto viewport =
       vk::Viewport()
           .setX(0.0f)
           .setY(0.0f)

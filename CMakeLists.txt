@@ -19,11 +19,18 @@ set(SOURCES
         src/QueueFamily.hpp
         src/BinaryLoader.cpp
         src/BinaryLoader.hpp
+        src/Vertex.cpp
+        src/Vertex.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)
 
 add_executable(KhronosVulkanTutorialHpp ${SOURCES})
+
+target_compile_options(KhronosVulkanTutorialHpp PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+)
 
 ############################ External dependencies #############################
 include(FetchContent)

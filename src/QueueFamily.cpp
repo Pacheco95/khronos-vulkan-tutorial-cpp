@@ -16,7 +16,7 @@ Indices::QueueCreateInfos QueueFamily::Indices::getQueueCreateInfos() const {
   QueueCreateInfos queueCreateInfos;
 
   for (uint32_t queueFamilyIndex : uniqueFamilies) {
-    const auto& queueCreateInfo =
+    const auto queueCreateInfo =
         vk::DeviceQueueCreateInfo()
             .setQueueFamilyIndex(queueFamilyIndex)
             .setQueueCount(1)
@@ -33,7 +33,7 @@ Indices QueueFamily::findIndices(
 ) {
   Indices indices;
 
-  const auto& families = device.getQueueFamilyProperties();
+  const auto families = device.getQueueFamilyProperties();
 
   for (uint32_t familyIndex = 0; familyIndex < families.size(); ++familyIndex) {
     if (families[familyIndex].queueFlags & vk::QueueFlagBits::eGraphics) {

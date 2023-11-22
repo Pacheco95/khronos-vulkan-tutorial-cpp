@@ -35,3 +35,4 @@ and current step.
   * [Command buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/02-command-buffers)
   * [Rendering and presentation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation)
   * [Frames in flight](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/04-frames-in-flight)
+  * [Swap chain recreation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/05-swapchain-recreation)

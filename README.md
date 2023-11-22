@@ -12,7 +12,7 @@ and current step.
 
 > [!IMPORTANT]
 > If a bug was found during the development of the current branch, the fix **will not be applied to previous branches**.
-> Instead, the next branch that fixes the bug will have a bugfix notice in the table of content below.
+> Instead, the next branch that fixes the bug will have a bugfix notice (🐞) in the table of contents below.
 
 * [Development environment](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
 * Setup
@@ -31,8 +31,11 @@ and current step.
     * [Render passes](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/04-render-passes)
     * [Conclusion](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/03-graphics-pipeline-basics/05-conclusion)
 * Drawing
-  * [Frame buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/01-frame-buffers)
-  * [Command buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/02-command-buffers)
-  * [Rendering and presentation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation)
-  * [Frames in flight](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/04-frames-in-flight)
-  * [Swap chain recreation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/05-swapchain-recreation)
+    * [Frame buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/01-frame-buffers)
+    * [Command buffers](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/02-command-buffers)
+    * [Rendering and presentation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/03-rendering-and-presentation)
+    * [Frames in flight](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/04-drawing/04-frames-in-flight)
+    * [Swap chain recreation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/05-swapchain-recreation)
+* Vertex buffers
+    * [Vertex input description](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/01-vertex-input-description)
+      🐞

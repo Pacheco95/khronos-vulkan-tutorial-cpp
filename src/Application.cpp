@@ -51,6 +51,7 @@ void Application::initVulkan() {
   createGraphicsPipeline();
   createFrameBuffers();
   createCommandPool();
+  createVertexBuffer();
   createCommandBuffers();
   createSyncObjects();
 }
@@ -139,6 +140,8 @@ void Application::cleanup() {
     m_device.destroy(m_renderFinishedSemaphores[i]);
     m_device.destroy(m_imageAvailableSemaphores[i]);
   }
+  m_device.destroy(m_vertexBuffer);
+  m_device.free(m_vertexBufferMemory);
   m_device.destroy(m_commandPool);
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
@@ -504,6 +507,34 @@ void Application::createCommandPool() {
   m_commandPool = m_device.createCommandPool(poolInfo);
 }
 
+void Application::createVertexBuffer() {
+  vk::BufferCreateInfo bufferInfo;
+  bufferInfo.setSize(sizeof(VERTICES[0]) * VERTICES.size())
+      .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+      .setSharingMode(vk::SharingMode::eExclusive);
+
+  m_vertexBuffer = m_device.createBuffer(bufferInfo);
+
+  vk::MemoryRequirements memRequirements =
+      m_device.getBufferMemoryRequirements(m_vertexBuffer);
+
+  vk::MemoryAllocateInfo allocInfo;
+  allocInfo.setAllocationSize(memRequirements.size)
+      .setMemoryTypeIndex(findMemoryType(
+          memRequirements.memoryTypeBits,
+          vk::MemoryPropertyFlagBits::eHostVisible |
+              vk::MemoryPropertyFlagBits::eHostCoherent
+      ));
+
+  m_vertexBufferMemory = m_device.allocateMemory(allocInfo);
+
+  m_device.bindBufferMemory(m_vertexBuffer, m_vertexBufferMemory, 0);
+
+  void* data = m_device.mapMemory(m_vertexBufferMemory, 0, bufferInfo.size);
+  memcpy(data, VERTICES.data(), static_cast<size_t>(bufferInfo.size));
+  m_device.unmapMemory(m_vertexBufferMemory);
+}
+
 void Application::createCommandBuffers() {
   m_commandBuffers.resize(Config::MAX_FRAMES_IN_FLIGHT);
 
@@ -674,7 +705,24 @@ void Application::recordCommandBuffer(
   vk::Rect2D scissor = {zeroOffset, m_swapChainExtent};
 
   commandBuffer.setScissor(0, scissor);
-  commandBuffer.draw(3, 1, 0, 0);
+  commandBuffer.bindVertexBuffers(0, m_vertexBuffer, {0});
+  commandBuffer.draw(static_cast<uint32_t>(VERTICES.size()), 1, 0, 0);
   commandBuffer.endRenderPass();
   commandBuffer.end();
+}
+
+uint32_t Application::findMemoryType(
+    uint32_t typeFilter, const vk::MemoryPropertyFlags& properties
+) {
+  vk::PhysicalDeviceMemoryProperties memProperties =
+      m_physicalDevice.getMemoryProperties();
+
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
+    if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
+                                    properties) == properties) {
+      return i;
+    }
+  }
+
+  throw std::runtime_error("failed to find suitable memory type!");
 }

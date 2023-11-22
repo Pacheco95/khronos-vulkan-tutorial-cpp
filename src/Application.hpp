@@ -41,6 +41,8 @@ class Application {
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
+  vk::Buffer m_vertexBuffer;
+  vk::DeviceMemory m_vertexBufferMemory;
   std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool
   std::vector<vk::Semaphore> m_imageAvailableSemaphores;
   std::vector<vk::Semaphore> m_renderFinishedSemaphores;
@@ -67,6 +69,7 @@ class Application {
   void createGraphicsPipeline();
   void createFrameBuffers();
   void createCommandPool();
+  void createVertexBuffer();
   void createCommandBuffers();
   void createSyncObjects();
 
@@ -98,5 +101,9 @@ class Application {
 
   void recordCommandBuffer(
       const vk::CommandBuffer& commandBuffer, uint32_t imageIndex
+  );
+
+  uint32_t findMemoryType(
+      uint32_t typeFilter, const vk::MemoryPropertyFlags& properties
   );
 };

@@ -9,8 +9,14 @@
 #include "QueueFamily.hpp"
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
+#include "Vertex.hpp"
 
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+
+const std::vector<Vertex> VERTICES = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
 void Application::run() {
   initWindow();
@@ -383,10 +389,13 @@ void Application::createGraphicsPipeline() {
   vk::PipelineShaderStageCreateInfo shaderStages[]{
       vertShaderStageInfo, fragShaderStageInfo};
 
+  auto bindingDescription = Vertex::getBindingDescription();
+  auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
   const auto vertexInputInfo =
       vk::PipelineVertexInputStateCreateInfo()
-          .setVertexBindingDescriptionCount(0)
-          .setVertexAttributeDescriptionCount(0);
+          .setVertexBindingDescriptions(bindingDescription)
+          .setVertexAttributeDescriptions(attributeDescriptions);
 
   const auto inputAssembly =
       vk::PipelineInputAssemblyStateCreateInfo()

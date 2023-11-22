@@ -5,7 +5,7 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 # Adjustments
 
 > [!CAUTION]
-> All usages of temporary bound to function calls (`const auto& = func()`) were removed.
+> All usages of temporary bound to function calls (`const auto& var = func()`) were removed.
 > Since I was compiling the code with `CLang 17`, everything was working just fine.
 > When I tried to compile with `GCC 11.4.0` the application crashed with segmentation faults.
 > Debugging the code, I realized that the reference lifetime was ending right before the assignment and the reference

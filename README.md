@@ -40,3 +40,4 @@ and current step.
     * [Vertex input description](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/01-vertex-input-description)
       🐞
     * [Vertex buffer creation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/02-vertex-buffer-creation)
+    * [Staging buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/03-staging-buffer)

@@ -106,4 +106,18 @@ class Application {
   uint32_t findMemoryType(
       uint32_t typeFilter, const vk::MemoryPropertyFlags& properties
   );
+
+  void createBuffer(
+      const vk::DeviceSize& size,
+      const vk::BufferUsageFlags& usage,
+      const vk::MemoryPropertyFlags& properties,
+      vk::Buffer& buffer,
+      vk::DeviceMemory& bufferMemory
+  );
+
+  void copyBuffer(
+      const vk::Buffer& srcBuffer,
+      vk::Buffer& dstBuffer,
+      const vk::DeviceSize& size
+  );
 };

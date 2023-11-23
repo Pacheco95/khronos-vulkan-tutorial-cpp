@@ -210,7 +210,7 @@ void Application::pickPhysicalDevice() {
       m_instance.enumeratePhysicalDevices();
 
   if (devices.empty()) {
-    throw runtime_error("Failed to findOrNull devices with Vulkan support");
+    throw runtime_error("Failed to find devices with Vulkan support");
   }
 
   for (const auto& device : devices) {
@@ -508,31 +508,37 @@ void Application::createCommandPool() {
 }
 
 void Application::createVertexBuffer() {
-  vk::BufferCreateInfo bufferInfo;
-  bufferInfo.setSize(sizeof(VERTICES[0]) * VERTICES.size())
-      .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
-      .setSharingMode(vk::SharingMode::eExclusive);
+  size_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 
-  m_vertexBuffer = m_device.createBuffer(bufferInfo);
+  vk::Buffer stagingBuffer;
+  vk::DeviceMemory stagingBufferMemory;
 
-  vk::MemoryRequirements memRequirements =
-      m_device.getBufferMemoryRequirements(m_vertexBuffer);
+  createBuffer(
+      bufferSize,
+      vk::BufferUsageFlagBits::eTransferSrc,
+      vk::MemoryPropertyFlagBits::eHostVisible |
+          vk::MemoryPropertyFlagBits::eHostCoherent,
+      stagingBuffer,
+      stagingBufferMemory
+  );
 
-  vk::MemoryAllocateInfo allocInfo;
-  allocInfo.setAllocationSize(memRequirements.size)
-      .setMemoryTypeIndex(findMemoryType(
-          memRequirements.memoryTypeBits,
-          vk::MemoryPropertyFlagBits::eHostVisible |
-              vk::MemoryPropertyFlagBits::eHostCoherent
-      ));
+  void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize);
+  memcpy(data, VERTICES.data(), static_cast<size_t>(bufferSize));
+  m_device.unmapMemory(stagingBufferMemory);
 
-  m_vertexBufferMemory = m_device.allocateMemory(allocInfo);
+  createBuffer(
+      bufferSize,
+      vk::BufferUsageFlagBits::eTransferDst |
+          vk::BufferUsageFlagBits::eVertexBuffer,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_vertexBuffer,
+      m_vertexBufferMemory
+  );
 
-  m_device.bindBufferMemory(m_vertexBuffer, m_vertexBufferMemory, 0);
+  copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
 
-  void* data = m_device.mapMemory(m_vertexBufferMemory, 0, bufferInfo.size);
-  memcpy(data, VERTICES.data(), static_cast<size_t>(bufferInfo.size));
-  m_device.unmapMemory(m_vertexBufferMemory);
+  m_device.destroy(stagingBuffer);
+  m_device.free(stagingBufferMemory);
 }
 
 void Application::createCommandBuffers() {
@@ -724,5 +730,66 @@ uint32_t Application::findMemoryType(
     }
   }
 
-  throw std::runtime_error("failed to find suitable memory type!");
+  throw std::runtime_error("Failed to find suitable memory type");
+}
+
+void Application::createBuffer(
+    const vk::DeviceSize& size,
+    const vk::BufferUsageFlags& usage,
+    const vk::MemoryPropertyFlags& properties,
+    vk::Buffer& buffer,
+    vk::DeviceMemory& bufferMemory
+) {
+  vk::BufferCreateInfo bufferInfo;
+  bufferInfo.size = size;
+  bufferInfo.usage = usage;
+  bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+  buffer = m_device.createBuffer(bufferInfo);
+
+  vk::MemoryRequirements memoryRequirements =
+      m_device.getBufferMemoryRequirements(buffer);
+
+  vk::MemoryAllocateInfo allocInfo;
+  allocInfo.allocationSize = memoryRequirements.size;
+  allocInfo.memoryTypeIndex =
+      findMemoryType(memoryRequirements.memoryTypeBits, properties);
+
+  bufferMemory = m_device.allocateMemory(allocInfo);
+
+  m_device.bindBufferMemory(buffer, bufferMemory, 0);
+}
+
+void Application::copyBuffer(
+    const vk::Buffer& srcBuffer,
+    vk::Buffer& dstBuffer,
+    const vk::DeviceSize& size
+) {
+  vk::CommandBufferAllocateInfo allocInfo;
+  allocInfo.level = vk::CommandBufferLevel::ePrimary;
+  allocInfo.commandPool = m_commandPool;
+  allocInfo.commandBufferCount = 1;
+
+  vk::CommandBuffer commandBuffer;
+  commandBuffer = m_device.allocateCommandBuffers(allocInfo)[0];
+
+  vk::CommandBufferBeginInfo beginInfo;
+  beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+  commandBuffer.begin(beginInfo);
+
+  vk::BufferCopy copyRegion;
+  copyRegion.size = size;
+
+  commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
+
+  commandBuffer.end();
+
+  vk::SubmitInfo submitInfo;
+  submitInfo.setCommandBuffers(commandBuffer);
+
+  m_graphicsQueue.submit(submitInfo, nullptr);
+  m_graphicsQueue.waitIdle();
+
+  m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }

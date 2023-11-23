@@ -43,6 +43,8 @@ class Application {
   vk::CommandPool m_commandPool;
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;
+  vk::Buffer m_indexBuffer;
+  vk::DeviceMemory m_indexBufferMemory;
   std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool
   std::vector<vk::Semaphore> m_imageAvailableSemaphores;
   std::vector<vk::Semaphore> m_renderFinishedSemaphores;
@@ -70,6 +72,7 @@ class Application {
   void createFrameBuffers();
   void createCommandPool();
   void createVertexBuffer();
+  void createIndexBuffer();
   void createCommandBuffers();
   void createSyncObjects();
 

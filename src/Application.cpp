@@ -14,9 +14,12 @@
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
 
 const std::vector<Vertex> VERTICES = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
+const std::vector<uint16_t> INDICES = {0, 1, 2, 2, 3, 0};
 
 void Application::run() {
   initWindow();
@@ -52,6 +55,7 @@ void Application::initVulkan() {
   createFrameBuffers();
   createCommandPool();
   createVertexBuffer();
+  createIndexBuffer();
   createCommandBuffers();
   createSyncObjects();
 }
@@ -140,8 +144,13 @@ void Application::cleanup() {
     m_device.destroy(m_renderFinishedSemaphores[i]);
     m_device.destroy(m_imageAvailableSemaphores[i]);
   }
+
+  m_device.destroy(m_indexBuffer);
+  m_device.free(m_indexBufferMemory);
+
   m_device.destroy(m_vertexBuffer);
   m_device.free(m_vertexBufferMemory);
+
   m_device.destroy(m_commandPool);
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
@@ -541,6 +550,40 @@ void Application::createVertexBuffer() {
   m_device.free(stagingBufferMemory);
 }
 
+void Application::createIndexBuffer() {
+  vk::DeviceSize bufferSize = sizeof(INDICES[0]) * INDICES.size();
+
+  vk::Buffer stagingBuffer;
+  vk::DeviceMemory stagingBufferMemory;
+
+  createBuffer(
+      bufferSize,
+      vk::BufferUsageFlagBits::eTransferSrc,
+      vk::MemoryPropertyFlagBits::eHostVisible |
+          vk::MemoryPropertyFlagBits::eHostCoherent,
+      stagingBuffer,
+      stagingBufferMemory
+  );
+
+  void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize, {});
+  memcpy(data, INDICES.data(), static_cast<size_t>(bufferSize));
+  m_device.unmapMemory(stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      vk::BufferUsageFlagBits::eTransferDst |
+          vk::BufferUsageFlagBits::eIndexBuffer,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_indexBuffer,
+      m_indexBufferMemory
+  );
+
+  copyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
+
+  m_device.destroy(stagingBuffer, nullptr);
+  m_device.free(stagingBufferMemory, nullptr);
+}
+
 void Application::createCommandBuffers() {
   m_commandBuffers.resize(Config::MAX_FRAMES_IN_FLIGHT);
 
@@ -712,7 +755,8 @@ void Application::recordCommandBuffer(
 
   commandBuffer.setScissor(0, scissor);
   commandBuffer.bindVertexBuffers(0, m_vertexBuffer, {0});
-  commandBuffer.draw(static_cast<uint32_t>(VERTICES.size()), 1, 0, 0);
+  commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint16);
+  commandBuffer.drawIndexed(static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
   commandBuffer.endRenderPass();
   commandBuffer.end();
 }

@@ -21,6 +21,7 @@ set(SOURCES
         src/BinaryLoader.hpp
         src/Vertex.cpp
         src/Vertex.hpp
+        src/HashUtils.hpp
 )
 
 add_compile_definitions(GLFW_VULKAN_STATIC)

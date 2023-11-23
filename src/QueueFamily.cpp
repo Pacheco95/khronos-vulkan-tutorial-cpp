@@ -2,6 +2,8 @@
 
 #include <set>
 
+QueueFamily::LookupTable QueueFamily::m_indicesCache = {};
+
 using Indices = QueueFamily::Indices;
 
 bool Indices::isComplete() const {
@@ -9,7 +11,7 @@ bool Indices::isComplete() const {
          transferFamily.has_value();
 }
 
-Indices::QueueCreateInfos QueueFamily::Indices::getQueueCreateInfos() const {
+Indices::QueueCreateInfos Indices::getQueueCreateInfos() const {
   std::set<uint32_t> uniqueFamilies = {
       graphicsFamily.value(),
       presentFamily.value(),
@@ -32,6 +34,21 @@ Indices::QueueCreateInfos QueueFamily::Indices::getQueueCreateInfos() const {
 }
 
 Indices QueueFamily::findIndices(
+    const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface
+) {
+  const auto lookupKey = std::make_tuple(device, surface);
+  const auto findIter = m_indicesCache.find(lookupKey);
+
+  if (findIter != m_indicesCache.end()) {
+    return findIter->second;
+  }
+
+  m_indicesCache[lookupKey] = findIndicesUncached(device, surface);
+
+  return m_indicesCache[lookupKey];
+}
+
+Indices QueueFamily::findIndicesUncached(
     const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface
 ) {
   Indices indices;

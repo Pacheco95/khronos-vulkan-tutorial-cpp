@@ -5,12 +5,15 @@
 using Indices = QueueFamily::Indices;
 
 bool Indices::isComplete() const {
-  return graphicsFamily.has_value() && presentFamily.has_value();
+  return graphicsFamily.has_value() && presentFamily.has_value() &&
+         transferFamily.has_value();
 }
 
 Indices::QueueCreateInfos QueueFamily::Indices::getQueueCreateInfos() const {
   std::set<uint32_t> uniqueFamilies = {
-      graphicsFamily.value(), presentFamily.value()};
+      graphicsFamily.value(),
+      presentFamily.value(),
+      transferFamily.has_value()};
 
   float queuePriority = 1.0f;
   QueueCreateInfos queueCreateInfos;
@@ -36,8 +39,18 @@ Indices QueueFamily::findIndices(
   const auto families = device.getQueueFamilyProperties();
 
   for (uint32_t familyIndex = 0; familyIndex < families.size(); ++familyIndex) {
-    if (families[familyIndex].queueFlags & vk::QueueFlagBits::eGraphics) {
+    const auto isGraphicsFamily =
+        families[familyIndex].queueFlags & vk::QueueFlagBits::eGraphics;
+
+    const auto isTransferFamily =
+        families[familyIndex].queueFlags & vk::QueueFlagBits::eTransfer;
+
+    if (isGraphicsFamily) {
       indices.graphicsFamily = familyIndex;
+    }
+
+    if (isTransferFamily && !isGraphicsFamily) {
+      indices.transferFamily = familyIndex;
     }
 
     if (device.getSurfaceSupportKHR(familyIndex, surface)) {

@@ -119,15 +119,17 @@ void Application::drawFrame() {
           .setSwapchains(m_swapChain)
           .setImageIndices(imageIndex);
 
-  result = m_presentQueue.presentKHR(presentInfo);
+  result = vk::Result(vkQueuePresentKHR(
+      m_presentQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
+  ));
 
   if (result == vk::Result::eErrorOutOfDateKHR ||
       result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
     m_framebufferResized = false;
     recreateSwapChain();
+  } else {
+    vk::resultCheck(result, "Failed to present swap chain image");
   }
-
-  vk::resultCheck(result, "Failed to present swap chain image");
 
   m_currentFrame = (m_currentFrame + 1) % Config::MAX_FRAMES_IN_FLIGHT;
 }
@@ -142,6 +144,7 @@ void Application::cleanup() {
   }
   m_device.destroy(m_vertexBuffer);
   m_device.free(m_vertexBufferMemory);
+  m_device.destroy(m_transferCommandPool);
   m_device.destroy(m_commandPool);
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
@@ -239,6 +242,7 @@ void Application::createLogicalDevice() {
 
   m_graphicsQueue = m_device.getQueue(indices.graphicsFamily.value(), 0);
   m_presentQueue = m_device.getQueue(indices.presentFamily.value(), 0);
+  m_transferQueue = m_device.getQueue(indices.transferFamily.value(), 0);
 }
 
 void Application::createSwapChain() {
@@ -504,7 +508,13 @@ void Application::createCommandPool() {
           .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
           .setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
 
+  const auto transferPoolInfo =
+      vk::CommandPoolCreateInfo()
+          .setFlags(vk::CommandPoolCreateFlagBits::eTransient)
+          .setQueueFamilyIndex(queueFamilyIndices.transferFamily.value());
+
   m_commandPool = m_device.createCommandPool(poolInfo);
+  m_transferCommandPool = m_device.createCommandPool(transferPoolInfo);
 }
 
 void Application::createVertexBuffer() {
@@ -740,10 +750,15 @@ void Application::createBuffer(
     vk::Buffer& buffer,
     vk::DeviceMemory& bufferMemory
 ) {
+  const auto indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
+
   vk::BufferCreateInfo bufferInfo;
+  const auto bufferInfoFamilyIndices = {
+      indices.graphicsFamily.value(), indices.transferFamily.value()};
   bufferInfo.size = size;
   bufferInfo.usage = usage;
-  bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+  bufferInfo.sharingMode = vk::SharingMode::eConcurrent;
+  bufferInfo.setQueueFamilyIndices(bufferInfoFamilyIndices);
 
   buffer = m_device.createBuffer(bufferInfo);
 
@@ -767,7 +782,7 @@ void Application::copyBuffer(
 ) {
   vk::CommandBufferAllocateInfo allocInfo;
   allocInfo.level = vk::CommandBufferLevel::ePrimary;
-  allocInfo.commandPool = m_commandPool;
+  allocInfo.commandPool = m_transferCommandPool;
   allocInfo.commandBufferCount = 1;
 
   vk::CommandBuffer commandBuffer;
@@ -788,8 +803,8 @@ void Application::copyBuffer(
   vk::SubmitInfo submitInfo;
   submitInfo.setCommandBuffers(commandBuffer);
 
-  m_graphicsQueue.submit(submitInfo, nullptr);
-  m_graphicsQueue.waitIdle();
+  m_transferQueue.submit(submitInfo, nullptr);
+  m_transferQueue.waitIdle();
 
-  m_device.freeCommandBuffers(m_commandPool, commandBuffer);
+  m_device.freeCommandBuffers(m_transferCommandPool, commandBuffer);
 }

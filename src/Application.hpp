@@ -31,6 +31,7 @@ class Application {
   vk::Device m_device;
   vk::Queue m_graphicsQueue;  // Destroyed by logical device
   vk::Queue m_presentQueue;   // Destroyed by logical device
+  vk::Queue m_transferQueue;  // Destroyed by logical device
   vk::SwapchainKHR m_swapChain;
   std::vector<vk::Image> m_swapChainImages;  // Destroyed by swap chain
   vk::Format m_swapChainImageFormat;
@@ -41,6 +42,7 @@ class Application {
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
+  vk::CommandPool m_transferCommandPool;
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;
   std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool

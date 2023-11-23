@@ -9,6 +9,7 @@ struct QueueFamily {
 
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
+    std::optional<uint32_t> transferFamily;
 
     [[nodiscard]] bool isComplete() const;
 

@@ -42,3 +42,4 @@ and current step.
     * [Vertex buffer creation](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/02-vertex-buffer-creation)
     * [Staging buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/03-staging-buffer)
     * [Index buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/04-index-buffer)
+    * [Descriptor layout and buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/01-descriptor-layout-and-buffer)

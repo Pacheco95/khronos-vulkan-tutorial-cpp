@@ -60,6 +60,8 @@ void Application::initVulkan() {
   createVertexBuffer();
   createIndexBuffer();
   createUniformBuffers();
+  createDescriptorPool();
+  createDescriptorSets();
   createCommandBuffers();
   createSyncObjects();
 }
@@ -144,6 +146,8 @@ void Application::drawFrame() {
 
 void Application::cleanup() {
   cleanupSwapChain();
+
+  m_device.destroy(m_descriptorPool);
 
   for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
     m_device.destroy(m_inFlightFences[i]);
@@ -452,7 +456,7 @@ void Application::createGraphicsPipeline() {
           .setPolygonMode(vk::PolygonMode::eFill)
           .setLineWidth(1.0f)
           .setCullMode(vk::CullModeFlagBits::eBack)
-          .setFrontFace(vk::FrontFace::eClockwise)
+          .setFrontFace(vk::FrontFace::eCounterClockwise)
           .setDepthBiasEnable(vk::False);
 
   const auto multisampling =
@@ -615,7 +619,7 @@ void Application::createUniformBuffers() {
   m_uniformBuffersMemory.resize(Config::MAX_FRAMES_IN_FLIGHT);
   m_uniformBuffersMapped.resize(Config::MAX_FRAMES_IN_FLIGHT);
 
-  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; i++) {
+  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
     createBuffer(
         bufferSize,
         vk::BufferUsageFlagBits::eUniformBuffer,
@@ -627,6 +631,50 @@ void Application::createUniformBuffers() {
 
     m_uniformBuffersMapped[i] =
         m_device.mapMemory(m_uniformBuffersMemory[i], 0, bufferSize);
+  }
+}
+
+void Application::createDescriptorPool() {
+  vk::DescriptorPoolSize poolSize;
+  poolSize.type = vk::DescriptorType::eUniformBuffer;
+  poolSize.descriptorCount =
+      static_cast<uint32_t>(Config::MAX_FRAMES_IN_FLIGHT);
+
+  vk::DescriptorPoolCreateInfo poolInfo;
+  poolInfo.setPoolSizes(poolSize);
+  poolInfo.maxSets = static_cast<uint32_t>(Config::MAX_FRAMES_IN_FLIGHT);
+
+  m_descriptorPool = m_device.createDescriptorPool(poolInfo);
+}
+
+void Application::createDescriptorSets() {
+  const uint8_t framesInFlight = Config::MAX_FRAMES_IN_FLIGHT;
+
+  std::vector<vk::DescriptorSetLayout> layouts(
+      framesInFlight, m_descriptorSetLayout
+  );
+
+  vk::DescriptorSetAllocateInfo allocInfo;
+  allocInfo.descriptorPool = m_descriptorPool;
+  allocInfo.setSetLayouts(layouts);
+
+  m_descriptorSets = m_device.allocateDescriptorSets(allocInfo);
+
+  for (size_t i = 0; i < framesInFlight; ++i) {
+    vk::DescriptorBufferInfo bufferInfo;
+    bufferInfo.buffer = m_uniformBuffers[i];
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UniformBufferObject);
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstSet = m_descriptorSets[i];
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.setBufferInfo(bufferInfo);
+
+    m_device.updateDescriptorSets(descriptorWrite, {});
   }
 }
 
@@ -802,6 +850,13 @@ void Application::recordCommandBuffer(
   commandBuffer.setScissor(0, scissor);
   commandBuffer.bindVertexBuffers(0, m_vertexBuffer, {0});
   commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint16);
+  commandBuffer.bindDescriptorSets(
+      vk::PipelineBindPoint::eGraphics,
+      m_pipelineLayout,
+      0,
+      m_descriptorSets[m_currentFrame],
+      {}
+  );
   commandBuffer.drawIndexed(static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
   commandBuffer.endRenderPass();
   commandBuffer.end();

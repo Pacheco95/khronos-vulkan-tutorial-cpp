@@ -1,6 +1,8 @@
 #include "Application.hpp"
 
+#include <chrono>
 #include <functional>
+#include <glm/gtc/matrix_transform.hpp>
 #include <limits>
 #include <set>
 
@@ -51,11 +53,13 @@ void Application::initVulkan() {
   createSwapChain();
   createImageViews();
   createRenderPass();
+  createDescriptorSetLayout();
   createGraphicsPipeline();
   createFrameBuffers();
   createCommandPool();
   createVertexBuffer();
   createIndexBuffer();
+  createUniformBuffers();
   createCommandBuffers();
   createSyncObjects();
 }
@@ -97,6 +101,8 @@ void Application::drawFrame() {
   if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
     vk::resultCheck(result, "Failed to acquire swap chain image");
   }
+
+  updateUniformBuffer(m_currentFrame);
 
   m_device.resetFences(inFlightFence);
 
@@ -145,6 +151,11 @@ void Application::cleanup() {
     m_device.destroy(m_imageAvailableSemaphores[i]);
   }
 
+  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; ++i) {
+    m_device.destroy(m_uniformBuffers[i]);
+    m_device.free(m_uniformBuffersMemory[i]);
+  }
+
   m_device.destroy(m_indexBuffer);
   m_device.free(m_indexBufferMemory);
 
@@ -154,6 +165,7 @@ void Application::cleanup() {
   m_device.destroy(m_commandPool);
   m_device.destroy(m_graphicsPipeline);
   m_device.destroy(m_pipelineLayout);
+  m_device.destroy(m_descriptorSetLayout);
   m_device.destroy(m_renderPass);
   m_device.destroy();
   m_instance.destroy(m_surface);
@@ -379,6 +391,20 @@ void Application::createRenderPass() {
   m_renderPass = m_device.createRenderPass(renderPassInfo);
 }
 
+void Application::createDescriptorSetLayout() {
+  const auto uboLayoutBinding =
+      vk::DescriptorSetLayoutBinding()
+          .setBinding(0)
+          .setDescriptorCount(1)
+          .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+          .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+  vk::DescriptorSetLayoutCreateInfo layoutInfo;
+  layoutInfo.setBindings(uboLayoutBinding);
+
+  m_descriptorSetLayout = m_device.createDescriptorSetLayout(layoutInfo);
+}
+
 void Application::createGraphicsPipeline() {
   auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
   auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
@@ -456,9 +482,7 @@ void Application::createGraphicsPipeline() {
       vk::PipelineDynamicStateCreateInfo().setDynamicStates(dynamicStates);
 
   const auto pipelineLayoutInfo =
-      vk::PipelineLayoutCreateInfo()
-          .setSetLayoutCount(0)
-          .setPushConstantRangeCount(0);
+      vk::PipelineLayoutCreateInfo().setSetLayouts(m_descriptorSetLayout);
 
   m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutInfo);
 
@@ -582,6 +606,28 @@ void Application::createIndexBuffer() {
 
   m_device.destroy(stagingBuffer, nullptr);
   m_device.free(stagingBufferMemory, nullptr);
+}
+
+void Application::createUniformBuffers() {
+  vk::DeviceSize bufferSize = sizeof(UniformBufferObject);
+
+  m_uniformBuffers.resize(Config::MAX_FRAMES_IN_FLIGHT);
+  m_uniformBuffersMemory.resize(Config::MAX_FRAMES_IN_FLIGHT);
+  m_uniformBuffersMapped.resize(Config::MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < Config::MAX_FRAMES_IN_FLIGHT; i++) {
+    createBuffer(
+        bufferSize,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent,
+        m_uniformBuffers[i],
+        m_uniformBuffersMemory[i]
+    );
+
+    m_uniformBuffersMapped[i] =
+        m_device.mapMemory(m_uniformBuffersMemory[i], 0, bufferSize);
+  }
 }
 
 void Application::createCommandBuffers() {
@@ -836,4 +882,34 @@ void Application::copyBuffer(
   m_graphicsQueue.waitIdle();
 
   m_device.freeCommandBuffers(m_commandPool, commandBuffer);
+}
+
+void Application::updateUniformBuffer(uint32_t currentImage) {
+  using namespace std::chrono;
+  using period = seconds::period;
+
+  static auto startTime = high_resolution_clock::now();
+
+  auto currentTime = high_resolution_clock::now();
+  float time = duration<float, period>(currentTime - startTime).count();
+
+  UniformBufferObject ubo;
+
+  ubo.model = glm::rotate(
+      glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)
+  );
+
+  ubo.view = glm::lookAt(
+      glm::vec3(2.0f, 2.0f, 2.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 1.0f)
+  );
+
+  float aspect = static_cast<float>(m_swapChainExtent.width) /
+                 static_cast<float>(m_swapChainExtent.height);
+
+  ubo.proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 10.0f);
+  ubo.proj[1][1] *= -1;
+
+  std::memcpy(m_uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }

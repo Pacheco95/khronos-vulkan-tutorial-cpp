@@ -552,6 +552,7 @@ void Application::createCommandPool() {
 
 void Application::createTextureImage() {
   int texWidth, texHeight, texChannels;
+
   stbi_uc* pixels = stbi_load(
       "res/textures/texture.jpg",
       &texWidth,
@@ -559,6 +560,7 @@ void Application::createTextureImage() {
       &texChannels,
       STBI_rgb_alpha
   );
+
   vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
   if (!pixels) {
@@ -567,6 +569,7 @@ void Application::createTextureImage() {
 
   vk::Buffer stagingBuffer;
   vk::DeviceMemory stagingBufferMemory;
+
   createBuffer(
       imageSize,
       vk::BufferUsageFlagBits::eTransferSrc,
@@ -599,12 +602,14 @@ void Application::createTextureImage() {
       vk::ImageLayout::eUndefined,
       vk::ImageLayout::eTransferDstOptimal
   );
+
   copyBufferToImage(
       stagingBuffer,
       m_textureImage,
       static_cast<uint32_t>(texWidth),
       static_cast<uint32_t>(texHeight)
   );
+
   transitionImageLayout(
       m_textureImage,
       vk::Format::eR8G8B8A8Srgb,
@@ -1032,19 +1037,18 @@ void Application::createImage(
     vk::Image& image,
     vk::DeviceMemory& imageMemory
 ) {
-  vk::ImageCreateInfo imageInfo{};
-  imageInfo.imageType = vk::ImageType::e2D;
-  imageInfo.extent.width = width;
-  imageInfo.extent.height = height;
-  imageInfo.extent.depth = 1;
-  imageInfo.mipLevels = 1;
-  imageInfo.arrayLayers = 1;
-  imageInfo.format = format;
-  imageInfo.tiling = tiling;
-  imageInfo.initialLayout = vk::ImageLayout::eUndefined;
-  imageInfo.usage = usage;
-  imageInfo.samples = vk::SampleCountFlagBits::e1;
-  imageInfo.sharingMode = vk::SharingMode::eExclusive;
+  const auto imageInfo =
+      vk::ImageCreateInfo()
+          .setImageType(vk::ImageType::e2D)
+          .setExtent({width, height, 1})
+          .setMipLevels(1)
+          .setArrayLayers(1)
+          .setFormat(format)
+          .setTiling(tiling)
+          .setInitialLayout(vk::ImageLayout::eUndefined)
+          .setUsage(usage)
+          .setSamples(vk::SampleCountFlagBits::e1)
+          .setSharingMode(vk::SharingMode::eExclusive);
 
   image = m_device.createImage(imageInfo);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
 #include "Window.hpp"
@@ -17,6 +18,12 @@ class Application {
       formats = device.getSurfaceFormatsKHR(surface);
       presentModes = device.getSurfacePresentModesKHR(surface);
     }
+  };
+
+  struct UniformBufferObject {
+    glm::mat4 model{};
+    glm::mat4 view{};
+    glm::mat4 proj{};
   };
 
  public:
@@ -37,6 +44,7 @@ class Application {
   vk::Extent2D m_swapChainExtent;
   std::vector<vk::ImageView> m_swapChainImageViews;
   vk::RenderPass m_renderPass;
+  vk::DescriptorSetLayout m_descriptorSetLayout;
   vk::PipelineLayout m_pipelineLayout;
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
@@ -45,6 +53,11 @@ class Application {
   vk::DeviceMemory m_vertexBufferMemory;
   vk::Buffer m_indexBuffer;
   vk::DeviceMemory m_indexBufferMemory;
+
+  std::vector<vk::Buffer> m_uniformBuffers;
+  std::vector<vk::DeviceMemory> m_uniformBuffersMemory;
+  std::vector<void*> m_uniformBuffersMapped;
+
   std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool
   std::vector<vk::Semaphore> m_imageAvailableSemaphores;
   std::vector<vk::Semaphore> m_renderFinishedSemaphores;
@@ -68,11 +81,13 @@ class Application {
   void cleanupSwapChain();
   void createImageViews();
   void createRenderPass();
+  void createDescriptorSetLayout();
   void createGraphicsPipeline();
   void createFrameBuffers();
   void createCommandPool();
   void createVertexBuffer();
   void createIndexBuffer();
+  void createUniformBuffers();
   void createCommandBuffers();
   void createSyncObjects();
 
@@ -123,4 +138,6 @@ class Application {
       vk::Buffer& dstBuffer,
       const vk::DeviceSize& size
   );
+
+  void updateUniformBuffer(uint32_t currentImage);
 };

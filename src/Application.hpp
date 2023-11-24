@@ -21,9 +21,9 @@ class Application {
   };
 
   struct UniformBufferObject {
-    glm::mat4 model{};
-    glm::mat4 view{};
-    glm::mat4 proj{};
+    alignas(16) glm::mat4 model{};
+    alignas(16) glm::mat4 view{};
+    alignas(16) glm::mat4 proj{};
   };
 
  public:
@@ -58,6 +58,9 @@ class Application {
   std::vector<vk::DeviceMemory> m_uniformBuffersMemory;
   std::vector<void*> m_uniformBuffersMapped;
 
+  vk::DescriptorPool m_descriptorPool;
+  std::vector<vk::DescriptorSet> m_descriptorSets;
+
   std::vector<vk::CommandBuffer> m_commandBuffers;  // Destroyed by command pool
   std::vector<vk::Semaphore> m_imageAvailableSemaphores;
   std::vector<vk::Semaphore> m_renderFinishedSemaphores;
@@ -88,6 +91,8 @@ class Application {
   void createVertexBuffer();
   void createIndexBuffer();
   void createUniformBuffers();
+  void createDescriptorPool();
+  void createDescriptorSets();
   void createCommandBuffers();
   void createSyncObjects();
 

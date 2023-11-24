@@ -1,4 +1,4 @@
-# Linux ❘ Uniform buffers ❘ Descriptor pool and sets
+# Linux ❘ Texture mapping ❘ Images
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 
@@ -7,13 +7,13 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 # Navigation
 
 [🌐 Original tutorial](
-https://docs.vulkan.org/tutorial/latest/05_Uniform_buffers/01_Descriptor_pool_and_sets.html)
+https://docs.vulkan.org/tutorial/latest/06_Texture_mapping/00_Images.html)
 
-[⏮ Uniform buffers / Descriptor layout and buffer](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/01-descriptor-layout-and-buffer)
+[⏮ Uniform buffers / Descriptor pool and sets](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/02-descriptor-pool-and-sets)
 
-[⏭ Texture mapping / Images](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/01-images)
+[⏭ Texture mapping / Image view and sampler](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/02-image-view-and-sampler)
 
 [🔄 Diff from previous step](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/04-uniform-buffers/01-descriptor-layout-and-buffer...linux/04-uniform-buffers/02-descriptor-pool-and-sets)
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/04-uniform-buffers/02-descriptor-pool-and-sets...linux/05-texture-mapping/01-images)

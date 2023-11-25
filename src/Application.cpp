@@ -166,8 +166,8 @@ void Application::cleanup() {
   m_device.destroy(m_vertexBuffer);
   m_device.free(m_vertexBufferMemory);
 
-  m_device.destroy(textureSampler);
-  m_device.destroy(textureImageView);
+  m_device.destroy(m_textureSampler);
+  m_device.destroy(m_textureImageView);
 
   m_device.free(m_textureImageMemory);
   m_device.destroy(m_textureImage);
@@ -333,9 +333,9 @@ void Application::recreateSwapChain() {
 void Application::cleanupSwapChain() {
   // Depth resources freed out of creation order because it needs to be
   // freed at swap chain recreation
-  m_device.destroy(depthImageView);
-  m_device.destroy(depthImage);
-  m_device.free(depthImageMemory);
+  m_device.destroy(m_depthImageView);
+  m_device.destroy(m_depthImage);
+  m_device.free(m_depthImageMemory);
 
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
@@ -593,19 +593,20 @@ void Application::createDepthResources() {
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eDepthStencilAttachment,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
-      depthImage,
-      depthImageMemory
+      m_depthImage,
+      m_depthImageMemory
   );
 
-  depthImageView =
-      createImageView(depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
+  m_depthImageView = createImageView(
+      m_depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth
+  );
 }
 
 void Application::createFrameBuffers() {
   m_swapChainFrameBuffers.resize(m_swapChainImageViews.size());
 
   for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
-    std::array attachments = {m_swapChainImageViews[i], depthImageView};
+    std::array attachments = {m_swapChainImageViews[i], m_depthImageView};
 
     const auto framebufferInfo =
         vk::FramebufferCreateInfo()
@@ -691,7 +692,7 @@ void Application::createTextureImage() {
 }
 
 void Application::createTextureImageView() {
-  textureImageView = createImageView(
+  m_textureImageView = createImageView(
       m_textureImage, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor
   );
 }
@@ -713,15 +714,15 @@ void Application::createTextureSampler() {
   samplerInfo.compareOp = vk::CompareOp::eAlways;
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 
-  textureSampler = m_device.createSampler(samplerInfo);
+  m_textureSampler = m_device.createSampler(samplerInfo);
 }
 
 void Application::loadModel() {
-  ModelLoader::loadObj("res/models/viking_room.obj", vertices, indices);
+  ModelLoader::loadObj("res/models/viking_room.obj", m_vertices, m_indices);
 }
 
 void Application::createVertexBuffer() {
-  size_t bufferSize = sizeof(vertices[0]) * vertices.size();
+  size_t bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
   vk::Buffer stagingBuffer;
   vk::DeviceMemory stagingBufferMemory;
@@ -736,7 +737,7 @@ void Application::createVertexBuffer() {
   );
 
   void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize);
-  memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+  memcpy(data, m_vertices.data(), static_cast<size_t>(bufferSize));
   m_device.unmapMemory(stagingBufferMemory);
 
   createBuffer(
@@ -755,7 +756,7 @@ void Application::createVertexBuffer() {
 }
 
 void Application::createIndexBuffer() {
-  vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+  vk::DeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
   vk::Buffer stagingBuffer;
   vk::DeviceMemory stagingBufferMemory;
@@ -770,7 +771,7 @@ void Application::createIndexBuffer() {
   );
 
   void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize, {});
-  memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+  memcpy(data, m_indices.data(), static_cast<size_t>(bufferSize));
   m_device.unmapMemory(stagingBufferMemory);
 
   createBuffer(
@@ -851,8 +852,8 @@ void Application::createDescriptorSets() {
 
     vk::DescriptorImageInfo imageInfo;
     imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    imageInfo.imageView = textureImageView;
-    imageInfo.sampler = textureSampler;
+    imageInfo.imageView = m_textureImageView;
+    imageInfo.sampler = m_textureSampler;
 
     const std::array descriptorWrites{
         vk::WriteDescriptorSet()
@@ -1059,7 +1060,9 @@ void Application::recordCommandBuffer(
       m_descriptorSets[m_currentFrame],
       {}
   );
-  commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+  commandBuffer.drawIndexed(
+      static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0
+  );
   commandBuffer.endRenderPass();
   commandBuffer.end();
 }

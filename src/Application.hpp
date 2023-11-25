@@ -51,17 +51,17 @@ class Application {
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
 
-  vk::Image depthImage;
-  vk::DeviceMemory depthImageMemory;
-  vk::ImageView depthImageView;
+  vk::Image m_depthImage;
+  vk::DeviceMemory m_depthImageMemory;
+  vk::ImageView m_depthImageView;
 
   vk::Image m_textureImage;
   vk::DeviceMemory m_textureImageMemory;
-  vk::ImageView textureImageView;
-  vk::Sampler textureSampler;
+  vk::ImageView m_textureImageView;
+  vk::Sampler m_textureSampler;
 
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
+  std::vector<Vertex> m_vertices;
+  std::vector<uint32_t> m_indices;
 
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;

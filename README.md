@@ -44,3 +44,5 @@ and current step.
     * [Index buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/03-vertex-buffers/04-index-buffer)
     * [Descriptor layout and buffer](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/01-descriptor-layout-and-buffer)
     * [Descriptor pool and sets](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/02-descriptor-pool-and-sets)
+* Texture mapping
+    * [Images](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/01-images)

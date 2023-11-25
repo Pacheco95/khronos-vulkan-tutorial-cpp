@@ -18,10 +18,11 @@
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
 
 const std::vector<Vertex> VERTICES = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
+
 
 const std::vector<uint16_t> INDICES = {0, 1, 2, 2, 3, 0};
 
@@ -60,6 +61,8 @@ void Application::initVulkan() {
   createFrameBuffers();
   createCommandPool();
   createTextureImage();
+  createTextureImageView();
+  createTextureSampler();
   createVertexBuffer();
   createIndexBuffer();
   createUniformBuffers();
@@ -401,8 +404,18 @@ void Application::createDescriptorSetLayout() {
           .setDescriptorType(vk::DescriptorType::eUniformBuffer)
           .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
+  const auto samplerLayoutBinding =
+      vk::DescriptorSetLayoutBinding()
+          .setBinding(1)
+          .setDescriptorCount(1)
+          .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+          .setStageFlags(vk::ShaderStageFlagBits::eFragment);
+
+
+  std::array bindings = {uboLayoutBinding, samplerLayoutBinding};
+
   vk::DescriptorSetLayoutCreateInfo layoutInfo;
-  layoutInfo.setBindings(uboLayoutBinding);
+  layoutInfo.setBindings(bindings);
 
   m_descriptorSetLayout = m_device.createDescriptorSetLayout(layoutInfo);
 }
@@ -728,14 +741,21 @@ void Application::createUniformBuffers() {
 }
 
 void Application::createDescriptorPool() {
-  vk::DescriptorPoolSize poolSize;
-  poolSize.type = vk::DescriptorType::eUniformBuffer;
-  poolSize.descriptorCount =
+  const auto maxFramesInFlight =
       static_cast<uint32_t>(Config::MAX_FRAMES_IN_FLIGHT);
 
+  std::array<vk::DescriptorPoolSize, 2> poolSizes;
+
+  poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
+  poolSizes[0].descriptorCount = maxFramesInFlight;
+
+  poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
+  poolSizes[1].descriptorCount = maxFramesInFlight;
+
+
   vk::DescriptorPoolCreateInfo poolInfo;
-  poolInfo.setPoolSizes(poolSize);
-  poolInfo.maxSets = static_cast<uint32_t>(Config::MAX_FRAMES_IN_FLIGHT);
+  poolInfo.setPoolSizes(poolSizes);
+  poolInfo.maxSets = maxFramesInFlight;
 
   m_descriptorPool = m_device.createDescriptorPool(poolInfo);
 }
@@ -759,15 +779,29 @@ void Application::createDescriptorSets() {
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    vk::WriteDescriptorSet descriptorWrite;
-    descriptorWrite.dstSet = m_descriptorSets[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.setBufferInfo(bufferInfo);
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    imageInfo.imageView = textureImageView;
+    imageInfo.sampler = textureSampler;
 
-    m_device.updateDescriptorSets(descriptorWrite, {});
+    const std::array descriptorWrites{
+        vk::WriteDescriptorSet()
+            .setDstSet(m_descriptorSets[i])
+            .setDstBinding(0)
+            .setDstArrayElement(0)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(1)
+            .setPBufferInfo(&bufferInfo),
+
+        vk::WriteDescriptorSet()
+            .setDstSet(m_descriptorSets[i])
+            .setDstBinding(1)
+            .setDstArrayElement(0)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setDescriptorCount(1)
+            .setPImageInfo(&imageInfo)};
+
+    m_device.updateDescriptorSets(descriptorWrites, {});
   }
 }
 
@@ -1074,7 +1108,7 @@ void Application::createImage(
   vk::MemoryRequirements memRequirements =
       m_device.getImageMemoryRequirements(image);
 
-  vk::MemoryAllocateInfo allocInfo{};
+  vk::MemoryAllocateInfo allocInfo;
   allocInfo.allocationSize = memRequirements.size;
   allocInfo.memoryTypeIndex =
       findMemoryType(memRequirements.memoryTypeBits, properties);
@@ -1091,7 +1125,7 @@ void Application::transitionImageLayout(
 ) {
   vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
-  vk::ImageMemoryBarrier barrier{};
+  vk::ImageMemoryBarrier barrier;
   barrier.oldLayout = oldLayout;
   barrier.newLayout = newLayout;
   barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
@@ -1142,7 +1176,7 @@ void Application::copyBufferToImage(
 ) {
   vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
-  vk::BufferImageCopy region{};
+  vk::BufferImageCopy region;
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
   region.bufferImageHeight = 0;

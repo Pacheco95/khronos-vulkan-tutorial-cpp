@@ -48,3 +48,4 @@ and current step.
     * [Images](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/01-images)
     * [Image view and sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/02-image-view-and-sampler)
     * [Combined image sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/03-combined-image-sampler)
+* [Depth buffering](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)

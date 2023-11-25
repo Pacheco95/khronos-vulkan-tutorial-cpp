@@ -17,6 +17,9 @@
 #include "Vertex.hpp"
 
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+constexpr char MODEL_PATH[] = "res/models/viking_room.obj";
+constexpr char VERTEX_SHADER_PATH[] = "res/shaders/shader.vert.spv";
+constexpr char FRAGMENT_SHADER_PATH[] = "res/shaders/shader.frag.spv";
 
 void Application::run() {
   initWindow();
@@ -455,8 +458,8 @@ void Application::createDescriptorSetLayout() {
 }
 
 void Application::createGraphicsPipeline() {
-  auto vertShaderCode = BinaryLoader::load("res/shaders/shader.vert.spv");
-  auto fragShaderCode = BinaryLoader::load("res/shaders/shader.frag.spv");
+  auto vertShaderCode = BinaryLoader::load(VERTEX_SHADER_PATH);
+  auto fragShaderCode = BinaryLoader::load(FRAGMENT_SHADER_PATH);
 
   vk::ShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   vk::ShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -718,7 +721,7 @@ void Application::createTextureSampler() {
 }
 
 void Application::loadModel() {
-  ModelLoader::loadObj("res/models/viking_room.obj", m_vertices, m_indices);
+  ModelLoader::loadObj(MODEL_PATH, m_vertices, m_indices);
 }
 
 void Application::createVertexBuffer() {

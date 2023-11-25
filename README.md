@@ -1,4 +1,4 @@
-# Linux ❘ Texture mapping ❘ Depth buffering
+# Linux ❘ Texture mapping ❘ Loading models
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 
@@ -7,13 +7,13 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 # Navigation
 
 [🌐 Original tutorial](
-https://docs.vulkan.org/tutorial/latest/07_Depth_buffering.html)
+https://docs.vulkan.org/tutorial/latest/08_Loading_models.html)
 
-[⏮ Texture mapping / Combined image sampler](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/03-combined-image-sampler)
+[⏮ Depth buffering](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)
 
-[⏭ Loading models](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models)
+[⏭ Generating Mipmaps](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/08-generating-mipmaps)
 
 [🔄 Diff from previous step](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/05-texture-mapping/03-combined-image-sampler...linux/06-depth-buffering)
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/06-depth-buffering...linux/07-loading-models)

@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "Vertex.hpp"
 #include "Window.hpp"
 
 class Application {
@@ -59,6 +60,8 @@ class Application {
   vk::ImageView textureImageView;
   vk::Sampler textureSampler;
 
+  std::vector<Vertex> vertices;
+  std::vector<uint32_t> indices;
 
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;
@@ -103,6 +106,7 @@ class Application {
   void createTextureImage();
   void createTextureImageView();
   void createTextureSampler();
+  void loadModel();
   void createVertexBuffer();
   void createIndexBuffer();
   void createUniformBuffers();

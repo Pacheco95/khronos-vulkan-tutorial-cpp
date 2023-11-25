@@ -13,4 +13,9 @@ struct Vertex {
 
   static std::array<vk::VertexInputAttributeDescription, 3>
   getAttributeDescriptions();
+
+  bool operator==(const Vertex& other) const {
+    return pos == other.pos && color == other.color &&
+           texCoord == other.texCoord;
+  }
 };

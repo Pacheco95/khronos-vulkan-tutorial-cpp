@@ -10,43 +10,13 @@
 
 #include "BinaryLoader.hpp"
 #include "Config.hpp"
+#include "ModelLoader.hpp"
 #include "QueueFamily.hpp"
 #include "Utils.hpp"
 #include "ValidationLayer.hpp"
 #include "Vertex.hpp"
 
 constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
-
-const std::vector<Vertex> VERTICES = {
-    // Top face
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-    // Bottom face
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}};
-
-
-const std::vector<uint16_t> INDICES = {
-    // Top face
-    0,
-    1,
-    2,
-    2,
-    3,
-    0,
-
-    // Bottom face
-    4,
-    5,
-    6,
-    6,
-    7,
-    4};
 
 void Application::run() {
   initWindow();
@@ -86,6 +56,7 @@ void Application::initVulkan() {
   createTextureImage();
   createTextureImageView();
   createTextureSampler();
+  loadModel();
   createVertexBuffer();
   createIndexBuffer();
   createUniformBuffers();
@@ -651,7 +622,7 @@ void Application::createTextureImage() {
   int texWidth, texHeight, texChannels;
 
   stbi_uc* pixels = stbi_load(
-      "res/textures/texture.jpg",
+      "res/textures/viking_room.png",
       &texWidth,
       &texHeight,
       &texChannels,
@@ -744,8 +715,12 @@ void Application::createTextureSampler() {
   textureSampler = m_device.createSampler(samplerInfo);
 }
 
+void Application::loadModel() {
+  ModelLoader::loadObj("res/models/viking_room.obj", vertices, indices);
+}
+
 void Application::createVertexBuffer() {
-  size_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
+  size_t bufferSize = sizeof(vertices[0]) * vertices.size();
 
   vk::Buffer stagingBuffer;
   vk::DeviceMemory stagingBufferMemory;
@@ -760,7 +735,7 @@ void Application::createVertexBuffer() {
   );
 
   void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize);
-  memcpy(data, VERTICES.data(), static_cast<size_t>(bufferSize));
+  memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
   m_device.unmapMemory(stagingBufferMemory);
 
   createBuffer(
@@ -779,7 +754,7 @@ void Application::createVertexBuffer() {
 }
 
 void Application::createIndexBuffer() {
-  vk::DeviceSize bufferSize = sizeof(INDICES[0]) * INDICES.size();
+  vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   vk::Buffer stagingBuffer;
   vk::DeviceMemory stagingBufferMemory;
@@ -794,7 +769,7 @@ void Application::createIndexBuffer() {
   );
 
   void* data = m_device.mapMemory(stagingBufferMemory, 0, bufferSize, {});
-  memcpy(data, INDICES.data(), static_cast<size_t>(bufferSize));
+  memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
   m_device.unmapMemory(stagingBufferMemory);
 
   createBuffer(
@@ -1075,7 +1050,7 @@ void Application::recordCommandBuffer(
 
   commandBuffer.setScissor(0, scissor);
   commandBuffer.bindVertexBuffers(0, m_vertexBuffer, {0});
-  commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint16);
+  commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(
       vk::PipelineBindPoint::eGraphics,
       m_pipelineLayout,
@@ -1083,7 +1058,7 @@ void Application::recordCommandBuffer(
       m_descriptorSets[m_currentFrame],
       {}
   );
-  commandBuffer.drawIndexed(static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
+  commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
   commandBuffer.endRenderPass();
   commandBuffer.end();
 }

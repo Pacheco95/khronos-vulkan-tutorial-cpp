@@ -14,6 +14,14 @@ and current step.
 > If a bug was found during the development of the current branch, the fix **will not be applied to previous branches**.
 > Instead, the next branch that fixes the bug will have a bugfix notice (🐞) in the table of contents below.
 
+> [!CAUTION]
+> A critical bug was found in
+> the [Loading models](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models) step.
+> It was caused in a very early commit, and you should fix it as soon as possible, otherwise the application will
+> probably pick the wrong physical device.
+> If you don't fix this bug early, then it may hinder your experience through the tutorial until you reach the chapter
+> where the bug was fixed.
+
 * [Development environment](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
 * Setup
     * [Base code](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/02-drawing-triangle/01-setup/01-base-code)
@@ -49,3 +57,4 @@ and current step.
     * [Image view and sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/02-image-view-and-sampler)
     * [Combined image sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/03-combined-image-sampler)
 * [Depth buffering](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)
+* [Loading models](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models) 🐞

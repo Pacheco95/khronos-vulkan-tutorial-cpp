@@ -21,7 +21,15 @@ set(SOURCES
         src/BinaryLoader.hpp
         src/Vertex.cpp
         src/Vertex.hpp
+        src/ModelLoader.cpp
+        src/ModelLoader.hpp
 )
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+else ()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+endif ()
 
 add_compile_definitions(GLFW_VULKAN_STATIC)
 
@@ -64,6 +72,7 @@ endif ()
 add_compile_definitions(
         GLM_FORCE_DEPTH_ZERO_TO_ONE
         GLM_FORCE_RADIANS
+        GLM_ENABLE_EXPERIMENTAL
 )
 
 FetchContent_Declare(
@@ -115,6 +124,23 @@ if (NOT stb_POPULATED)
 endif ()
 
 target_include_directories(KhronosVulkanTutorialHpp PRIVATE ${stb_SOURCE_DIR})
+
+############################### tinyobjloader ##################################
+add_compile_definitions(TINYOBJLOADER_IMPLEMENTATION)
+
+FetchContent_Declare(
+        tinyobjloader
+        GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+        GIT_TAG release
+)
+
+FetchContent_GetProperties(tinyobjloader)
+if (NOT tinyobjloader_POPULATED)
+  FetchContent_Populate(tinyobjloader)
+  add_subdirectory(${tinyobjloader_SOURCE_DIR} ${tinyobjloader_BINARY_DIR})
+endif ()
+
+target_link_libraries(KhronosVulkanTutorialHpp PRIVATE tinyobjloader)
 
 ############################ End of dependencies ###############################
 

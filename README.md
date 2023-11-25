@@ -4,6 +4,16 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
+> [!IMPORTANT]
+> Fixed a bug preventing the application from picking the correct physical device.
+> The bug was introduced
+> here:
+> https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/commit/d7ddbfad363e384a8925b0cb4efb5b84297acbcf#r133490971
+
+- Moved mesh loading logic to `ModelLoader` class.
+- Added missing class member variables `m_` prefix.
+- Added compiler optimization flags to `CMakeLists.txt`.
+
 # Navigation
 
 [🌐 Original tutorial](

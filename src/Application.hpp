@@ -49,6 +49,10 @@ class Application {
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
+
+  vk::Image m_textureImage;
+  vk::DeviceMemory m_textureImageMemory;
+
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;
   vk::Buffer m_indexBuffer;
@@ -88,6 +92,7 @@ class Application {
   void createGraphicsPipeline();
   void createFrameBuffers();
   void createCommandPool();
+  void createTextureImage();
   void createVertexBuffer();
   void createIndexBuffer();
   void createUniformBuffers();
@@ -145,4 +150,30 @@ class Application {
   );
 
   void updateUniformBuffer(uint32_t currentImage);
+
+  void createImage(
+      uint32_t width,
+      uint32_t height,
+      vk::Format format,
+      vk::ImageTiling tiling,
+      vk::ImageUsageFlags usage,
+      vk::MemoryPropertyFlags properties,
+      vk::Image& image,
+      vk::DeviceMemory& imageMemory
+  );
+
+  void transitionImageLayout(
+      vk::Image image,
+      vk::Format format,
+      vk::ImageLayout oldLayout,
+      vk::ImageLayout newLayout
+  );
+
+  void copyBufferToImage(
+      vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height
+  );
+
+  vk::CommandBuffer beginSingleTimeCommands();
+
+  void endSingleTimeCommands(vk::CommandBuffer& commandBuffer);
 };

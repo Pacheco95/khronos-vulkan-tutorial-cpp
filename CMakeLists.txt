@@ -100,6 +100,22 @@ if (NOT spdlog_POPULATED)
   add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
 endif ()
 
+##################################### STB ######################################
+FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+        GIT_TAG master
+)
+
+add_compile_definitions(STB_IMAGE_IMPLEMENTATION)
+
+FetchContent_GetProperties(stb)
+if (NOT stb_POPULATED)
+  FetchContent_Populate(stb)
+endif ()
+
+target_include_directories(KhronosVulkanTutorialHpp PRIVATE ${stb_SOURCE_DIR})
+
 ############################ End of dependencies ###############################
 
 target_link_libraries(KhronosVulkanTutorialHpp

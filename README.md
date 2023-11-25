@@ -46,3 +46,4 @@ and current step.
     * [Descriptor pool and sets](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/04-uniform-buffers/02-descriptor-pool-and-sets)
 * Texture mapping
     * [Images](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/01-images)
+    * [Image view and sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/02-image-view-and-sampler)

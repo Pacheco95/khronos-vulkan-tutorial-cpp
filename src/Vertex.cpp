@@ -14,7 +14,7 @@ Vertex::getAttributeDescriptions() {
       vk::VertexInputAttributeDescription()
           .setBinding(0)
           .setLocation(0)
-          .setFormat(vk::Format::eR32G32Sfloat)
+          .setFormat(vk::Format::eR32G32B32Sfloat)
           .setOffset(offsetof(Vertex, pos)),
 
       vk::VertexInputAttributeDescription()

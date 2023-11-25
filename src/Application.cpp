@@ -247,6 +247,7 @@ void Application::pickPhysicalDevice() {
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       m_physicalDevice = device;
+      break;
     }
   }
 

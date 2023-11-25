@@ -9,11 +9,11 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 [🌐 Original tutorial](
 https://docs.vulkan.org/tutorial/latest/06_Texture_mapping/02_Combined_image_sampler.html)
 
-[⏮ Texture mapping / Images](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/01-images)
+[⏮ Texture mapping / Image view and sampler](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/02-image-view-and-sampler)
 
-[⏭ Texture mapping / Combined image sampler](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/03-combined-image-sampler)
+[⏭ Depth buffering](
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)
 
 [🔄 Diff from previous step](
-https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/05-texture-mapping/01-images...linux/05-texture-mapping/02-image-view-and-sampler)
+https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/compare/linux/05-texture-mapping/02-image-view-and-sampler...linux/05-texture-mapping/03-combined-image-sampler)

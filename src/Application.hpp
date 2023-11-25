@@ -50,6 +50,10 @@ class Application {
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
 
+  vk::Image depthImage;
+  vk::DeviceMemory depthImageMemory;
+  vk::ImageView depthImageView;
+
   vk::Image m_textureImage;
   vk::DeviceMemory m_textureImageMemory;
   vk::ImageView textureImageView;
@@ -93,8 +97,9 @@ class Application {
   void createRenderPass();
   void createDescriptorSetLayout();
   void createGraphicsPipeline();
-  void createFrameBuffers();
   void createCommandPool();
+  void createDepthResources();
+  void createFrameBuffers();
   void createTextureImage();
   void createTextureImageView();
   void createTextureSampler();
@@ -182,5 +187,15 @@ class Application {
 
   void endSingleTimeCommands(vk::CommandBuffer& commandBuffer);
 
-  vk::ImageView createImageView(vk::Image image, vk::Format format);
+  vk::ImageView createImageView(
+      vk::Image image, vk::Format format, vk::ImageAspectFlagBits aspectFlags
+  );
+
+  vk::Format findSupportedFormat(
+      const std::vector<vk::Format>& candidates,
+      vk::ImageTiling tiling,
+      vk::FormatFeatureFlags features
+  );
+
+  vk::Format findDepthFormat();
 };

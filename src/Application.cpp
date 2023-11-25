@@ -169,6 +169,9 @@ void Application::cleanup() {
   m_device.destroy(m_vertexBuffer);
   m_device.free(m_vertexBufferMemory);
 
+  m_device.destroy(textureSampler);
+  m_device.destroy(textureImageView);
+
   m_device.free(m_textureImageMemory);
   m_device.destroy(m_textureImage);
 
@@ -258,7 +261,9 @@ void Application::pickPhysicalDevice() {
 void Application::createLogicalDevice() {
   const auto indices = QueueFamily::findIndices(m_physicalDevice, m_surface);
   const auto queueCreateInfos = indices.getQueueCreateInfos();
+
   vk::PhysicalDeviceFeatures deviceFeatures;
+  deviceFeatures.samplerAnisotropy = vk::True;
 
   const auto deviceCreateInfo =
       vk::DeviceCreateInfo()
@@ -343,21 +348,8 @@ void Application::createImageViews() {
   m_swapChainImageViews.resize(m_swapChainImages.size());
 
   for (size_t i = 0; i < m_swapChainImages.size(); ++i) {
-    const auto createInfo =
-        vk::ImageViewCreateInfo()
-            .setImage(m_swapChainImages[i])
-            .setViewType(vk::ImageViewType::e2D)
-            .setFormat(m_swapChainImageFormat)
-            .setSubresourceRange(
-                vk::ImageSubresourceRange()
-                    .setAspectMask(vk::ImageAspectFlagBits::eColor)
-                    .setBaseMipLevel(0)
-                    .setLevelCount(1)
-                    .setBaseArrayLayer(0)
-                    .setLayerCount(1)
-            );
-
-    m_swapChainImageViews[i] = m_device.createImageView(createInfo);
+    m_swapChainImageViews[i] =
+        createImageView(m_swapChainImages[i], m_swapChainImageFormat);
   }
 }
 
@@ -621,6 +613,30 @@ void Application::createTextureImage() {
   m_device.free(stagingBufferMemory);
 }
 
+void Application::createTextureImageView() {
+  textureImageView = createImageView(m_textureImage, vk::Format::eR8G8B8A8Srgb);
+}
+
+void Application::createTextureSampler() {
+  vk::PhysicalDeviceProperties properties = m_physicalDevice.getProperties();
+
+  vk::SamplerCreateInfo samplerInfo;
+  samplerInfo.magFilter = vk::Filter::eLinear;
+  samplerInfo.minFilter = vk::Filter::eLinear;
+  samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+  samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+  samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+  samplerInfo.anisotropyEnable = vk::True;
+  samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+  samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+  samplerInfo.unnormalizedCoordinates = vk::False;
+  samplerInfo.compareEnable = vk::False;
+  samplerInfo.compareOp = vk::CompareOp::eAlways;
+  samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+
+  textureSampler = m_device.createSampler(samplerInfo);
+}
+
 void Application::createVertexBuffer() {
   size_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 
@@ -796,7 +812,10 @@ bool Application::isDeviceSuitable(const vk::PhysicalDevice& device) const {
     );
   }
 
-  return indices.isComplete() && extensionsSupported && suitableSwapChain;
+  vk::PhysicalDeviceFeatures supportedFeatures = device.getFeatures();
+
+  return indices.isComplete() && extensionsSupported && suitableSwapChain &&
+         supportedFeatures.samplerAnisotropy;
 }
 
 bool Application::checkDeviceExtensionSupport(const vk::PhysicalDevice& device
@@ -1167,4 +1186,18 @@ void Application::endSingleTimeCommands(vk::CommandBuffer& commandBuffer) {
   m_graphicsQueue.waitIdle();
 
   m_device.freeCommandBuffers(m_commandPool, commandBuffer);
+}
+
+vk::ImageView Application::createImageView(vk::Image image, vk::Format format) {
+  vk::ImageViewCreateInfo viewInfo;
+  viewInfo.image = image;
+  viewInfo.viewType = vk::ImageViewType::e2D;
+  viewInfo.format = format;
+  viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+  viewInfo.subresourceRange.baseMipLevel = 0;
+  viewInfo.subresourceRange.levelCount = 1;
+  viewInfo.subresourceRange.baseArrayLayer = 0;
+  viewInfo.subresourceRange.layerCount = 1;
+
+  return m_device.createImageView(viewInfo);
 }

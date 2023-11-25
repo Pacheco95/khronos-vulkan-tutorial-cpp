@@ -52,6 +52,9 @@ class Application {
 
   vk::Image m_textureImage;
   vk::DeviceMemory m_textureImageMemory;
+  vk::ImageView textureImageView;
+  vk::Sampler textureSampler;
+
 
   vk::Buffer m_vertexBuffer;
   vk::DeviceMemory m_vertexBufferMemory;
@@ -93,6 +96,8 @@ class Application {
   void createFrameBuffers();
   void createCommandPool();
   void createTextureImage();
+  void createTextureImageView();
+  void createTextureSampler();
   void createVertexBuffer();
   void createIndexBuffer();
   void createUniformBuffers();
@@ -176,4 +181,6 @@ class Application {
   vk::CommandBuffer beginSingleTimeCommands();
 
   void endSingleTimeCommands(vk::CommandBuffer& commandBuffer);
+
+  vk::ImageView createImageView(vk::Image image, vk::Format format);
 };

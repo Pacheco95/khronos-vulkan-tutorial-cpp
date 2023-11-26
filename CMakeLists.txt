@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(KhronosVulkanTutorialHpp CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(EXECUTABLE_NAME ${CMAKE_PROJECT_NAME})
 set(VULKAN_SDK_DIR "$ENV{VULKAN_SDK}")
 set(SOURCES
         src/main.cpp
@@ -35,120 +36,23 @@ else ()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 endif ()
 
-add_compile_definitions(GLFW_VULKAN_STATIC)
+add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
-add_executable(KhronosVulkanTutorialHpp ${SOURCES})
-
-target_compile_options(KhronosVulkanTutorialHpp PRIVATE
+target_compile_options(${EXECUTABLE_NAME} PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
 )
 
 ############################ External dependencies #############################
-include(FetchContent)
 
-#################################### Vulkan ####################################
-find_package(Vulkan REQUIRED)
-target_include_directories(KhronosVulkanTutorialHpp
-        PRIVATE
-        $ENV{VULKAN_SDK}/include
-)
+include(dependencies/vulkan.cmake)
+include(dependencies/glfw.cmake)
+include(dependencies/glm.cmake)
+include(dependencies/spdlog.cmake)
+include(dependencies/stb.cmake)
+include(dependencies/tinyobjloader.cmake)
 
-##################################### GLFW #####################################
-option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
-option(GLFW_BUILD_TESTS "Build the GLFW test programs" OFF)
-option(GLFW_BUILD_DOCS "Build the GLFW documentation" OFF)
-option(GLFW_INSTALL "Generate installation target" OFF)
-
-FetchContent_Declare(
-        GLFW
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.8
-)
-
-FetchContent_GetProperties(GLFW)
-if (NOT GLFW_POPULATED)
-  FetchContent_Populate(GLFW)
-  add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
-endif ()
-
-##################################### GLM ######################################
-add_compile_definitions(
-        GLM_FORCE_DEPTH_ZERO_TO_ONE
-        GLM_FORCE_RADIANS
-        GLM_ENABLE_EXPERIMENTAL
-)
-
-FetchContent_Declare(
-        GLM
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 0.9.9.8
-)
-
-FetchContent_GetProperties(GLM)
-if (NOT GLM_POPULATED)
-  FetchContent_Populate(GLM)
-  add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
-endif ()
-
-target_include_directories(KhronosVulkanTutorialHpp PRIVATE ${glm_SOURCE_DIR})
-
-
-################################### SPDLog #####################################
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-  add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN)
-else ()
-  add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
-endif ()
-
-FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.12.0
-)
-
-FetchContent_GetProperties(spdlog)
-if (NOT spdlog_POPULATED)
-  FetchContent_Populate(spdlog)
-  add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
-endif ()
-
-##################################### STB ######################################
-FetchContent_Declare(
-        stb
-        GIT_REPOSITORY https://github.com/nothings/stb.git
-        GIT_TAG master
-)
-
-add_compile_definitions(STB_IMAGE_IMPLEMENTATION)
-
-FetchContent_GetProperties(stb)
-if (NOT stb_POPULATED)
-  FetchContent_Populate(stb)
-endif ()
-
-target_include_directories(KhronosVulkanTutorialHpp PRIVATE ${stb_SOURCE_DIR})
-
-############################### tinyobjloader ##################################
-add_compile_definitions(TINYOBJLOADER_IMPLEMENTATION)
-
-FetchContent_Declare(
-        tinyobjloader
-        GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-        GIT_TAG release
-)
-
-FetchContent_GetProperties(tinyobjloader)
-if (NOT tinyobjloader_POPULATED)
-  FetchContent_Populate(tinyobjloader)
-  add_subdirectory(${tinyobjloader_SOURCE_DIR} ${tinyobjloader_BINARY_DIR})
-endif ()
-
-target_link_libraries(KhronosVulkanTutorialHpp PRIVATE tinyobjloader)
-
-############################ End of dependencies ###############################
-
-target_link_libraries(KhronosVulkanTutorialHpp
+target_link_libraries(${EXECUTABLE_NAME}
         PRIVATE
         Vulkan::Vulkan
         glfw
@@ -163,6 +67,6 @@ target_link_libraries(KhronosVulkanTutorialHpp
 
 add_subdirectory(res/shaders)
 
-add_dependencies(KhronosVulkanTutorialHpp Shaders)
+add_dependencies(${EXECUTABLE_NAME} Shaders)
 
-install(TARGETS KhronosVulkanTutorialHpp DESTINATION bin)
+install(TARGETS ${EXECUTABLE_NAME} DESTINATION bin)

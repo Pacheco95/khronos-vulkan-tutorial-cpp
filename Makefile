@@ -2,6 +2,7 @@
 
 clean:
 	rm -rf cmake-build*
+	find res/shaders -type f -iname \*.spv -delete
 
 format:
 	find src -type f \

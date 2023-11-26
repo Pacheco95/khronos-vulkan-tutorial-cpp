@@ -23,6 +23,10 @@ set(SOURCES
         src/Vertex.hpp
         src/ModelLoader.cpp
         src/ModelLoader.hpp
+        src/SingleTimeCommand.cpp
+        src/SingleTimeCommand.hpp
+        src/MipmapGenerator.cpp
+        src/MipmapGenerator.hpp
 )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")

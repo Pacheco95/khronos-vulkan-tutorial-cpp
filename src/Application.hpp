@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "SingleTimeCommand.hpp"
 #include "Vertex.hpp"
 #include "Window.hpp"
 
@@ -55,6 +56,7 @@ class Application {
   vk::DeviceMemory m_depthImageMemory;
   vk::ImageView m_depthImageView;
 
+  uint32_t m_mipLevels;
   vk::Image m_textureImage;
   vk::DeviceMemory m_textureImageMemory;
   vk::ImageView m_textureImageView;
@@ -168,6 +170,7 @@ class Application {
   void createImage(
       uint32_t width,
       uint32_t height,
+      uint32_t mipLevels,
       vk::Format format,
       vk::ImageTiling tiling,
       vk::ImageUsageFlags usage,
@@ -180,19 +183,19 @@ class Application {
       vk::Image image,
       vk::Format format,
       vk::ImageLayout oldLayout,
-      vk::ImageLayout newLayout
+      vk::ImageLayout newLayout,
+      uint32_t mipLevels
   );
 
   void copyBufferToImage(
       vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height
   );
 
-  vk::CommandBuffer beginSingleTimeCommands();
-
-  void endSingleTimeCommands(vk::CommandBuffer& commandBuffer);
-
   vk::ImageView createImageView(
-      vk::Image image, vk::Format format, vk::ImageAspectFlagBits aspectFlags
+      vk::Image image,
+      vk::Format format,
+      vk::ImageAspectFlagBits aspectFlags,
+      uint32_t mipLevels
   );
 
   vk::Format findSupportedFormat(
@@ -202,4 +205,6 @@ class Application {
   );
 
   vk::Format findDepthFormat();
+
+  SingleTimeCommand createSingleTimeCommand();
 };

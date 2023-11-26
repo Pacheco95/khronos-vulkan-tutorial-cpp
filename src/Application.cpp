@@ -10,6 +10,7 @@
 
 #include "BinaryLoader.hpp"
 #include "Config.hpp"
+#include "MipmapGenerator.hpp"
 #include "ModelLoader.hpp"
 #include "QueueFamily.hpp"
 #include "Utils.hpp"
@@ -362,7 +363,8 @@ void Application::createImageViews() {
     m_swapChainImageViews[i] = createImageView(
         m_swapChainImages[i],
         m_swapChainImageFormat,
-        vk::ImageAspectFlagBits::eColor
+        vk::ImageAspectFlagBits::eColor,
+        1
     );
   }
 }
@@ -596,6 +598,7 @@ void Application::createDepthResources() {
   createImage(
       m_swapChainExtent.width,
       m_swapChainExtent.height,
+      1,
       depthFormat,
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eDepthStencilAttachment,
@@ -605,7 +608,7 @@ void Application::createDepthResources() {
   );
 
   m_depthImageView = createImageView(
-      m_depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth
+      m_depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth, 1
   );
 }
 
@@ -628,6 +631,10 @@ void Application::createFrameBuffers() {
 }
 
 void Application::createTextureImage() {
+  using std::floor;
+  using std::log2;
+  using std::max;
+
   int texWidth, texHeight, texChannels;
 
   stbi_uc* pixels = stbi_load(
@@ -637,6 +644,10 @@ void Application::createTextureImage() {
       &texChannels,
       STBI_rgb_alpha
   );
+
+  m_mipLevels =
+      static_cast<uint32_t>(floor(log2(max(texWidth, texHeight)))) + 1;
+
 
   vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -665,9 +676,12 @@ void Application::createTextureImage() {
   createImage(
       texWidth,
       texHeight,
+      m_mipLevels,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageTiling::eOptimal,
-      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+      vk::ImageUsageFlagBits::eTransferSrc |
+          vk::ImageUsageFlagBits::eTransferDst |
+          vk::ImageUsageFlagBits::eSampled,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_textureImage,
       m_textureImageMemory
@@ -677,7 +691,8 @@ void Application::createTextureImage() {
       m_textureImage,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageLayout::eUndefined,
-      vk::ImageLayout::eTransferDstOptimal
+      vk::ImageLayout::eTransferDstOptimal,
+      m_mipLevels
   );
 
   copyBufferToImage(
@@ -687,12 +702,16 @@ void Application::createTextureImage() {
       static_cast<uint32_t>(texHeight)
   );
 
-  transitionImageLayout(
+  auto singleTimeCommand = createSingleTimeCommand();
+
+  MipmapGenerator::MipmapProps mipmapProps{
       m_textureImage,
       vk::Format::eR8G8B8A8Srgb,
-      vk::ImageLayout::eTransferDstOptimal,
-      vk::ImageLayout::eShaderReadOnlyOptimal
-  );
+      texWidth,
+      texHeight,
+      m_mipLevels};
+
+  MipmapGenerator::generate(mipmapProps, singleTimeCommand, m_physicalDevice);
 
   m_device.destroy(stagingBuffer);
   m_device.free(stagingBufferMemory);
@@ -700,7 +719,10 @@ void Application::createTextureImage() {
 
 void Application::createTextureImageView() {
   m_textureImageView = createImageView(
-      m_textureImage, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor
+      m_textureImage,
+      vk::Format::eR8G8B8A8Srgb,
+      vk::ImageAspectFlagBits::eColor,
+      m_mipLevels
   );
 }
 
@@ -720,6 +742,8 @@ void Application::createTextureSampler() {
   samplerInfo.compareEnable = vk::False;
   samplerInfo.compareOp = vk::CompareOp::eAlways;
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+  samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+  samplerInfo.maxLod = vk::LodClampNone;
 
   m_textureSampler = m_device.createSampler(samplerInfo);
 }
@@ -1122,14 +1146,13 @@ void Application::copyBuffer(
     vk::Buffer& dstBuffer,
     const vk::DeviceSize& size
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer commandBuffer = singleTimeCommand.begin();
 
   vk::BufferCopy copyRegion;
   copyRegion.size = size;
 
   commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
-
-  endSingleTimeCommands(commandBuffer);
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage) {
@@ -1165,6 +1188,7 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 void Application::createImage(
     uint32_t width,
     uint32_t height,
+    uint32_t mipLevels,
     vk::Format format,
     vk::ImageTiling tiling,
     vk::ImageUsageFlags usage,
@@ -1176,7 +1200,7 @@ void Application::createImage(
       vk::ImageCreateInfo()
           .setImageType(vk::ImageType::e2D)
           .setExtent({width, height, 1})
-          .setMipLevels(1)
+          .setMipLevels(mipLevels)
           .setArrayLayers(1)
           .setFormat(format)
           .setTiling(tiling)
@@ -1203,9 +1227,11 @@ void Application::transitionImageLayout(
     vk::Image image,
     vk::Format format,
     vk::ImageLayout oldLayout,
-    vk::ImageLayout newLayout
+    vk::ImageLayout newLayout,
+    uint32_t mipLevels
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer& commandBuffer = singleTimeCommand.begin();
 
   vk::ImageMemoryBarrier barrier;
   barrier.oldLayout = oldLayout;
@@ -1215,7 +1241,7 @@ void Application::transitionImageLayout(
   barrier.image = image;
   barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
   barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.levelCount = mipLevels;
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = 1;
 
@@ -1249,14 +1275,13 @@ void Application::transitionImageLayout(
       1,
       &barrier
   );
-
-  endSingleTimeCommands(commandBuffer);
 }
 
 void Application::copyBufferToImage(
     vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer commandBuffer = singleTimeCommand.begin();
 
   vk::BufferImageCopy region;
   region.bufferOffset = 0;
@@ -1272,40 +1297,13 @@ void Application::copyBufferToImage(
   commandBuffer.copyBufferToImage(
       buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region
   );
-
-  endSingleTimeCommands(commandBuffer);
-}
-
-vk::CommandBuffer Application::beginSingleTimeCommands() {
-  vk::CommandBufferAllocateInfo allocInfo;
-  allocInfo.level = vk::CommandBufferLevel::ePrimary;
-  allocInfo.commandPool = m_commandPool;
-  allocInfo.commandBufferCount = 1;
-
-  vk::CommandBuffer commandBuffer;
-  commandBuffer = m_device.allocateCommandBuffers(allocInfo)[0];
-
-  vk::CommandBufferBeginInfo beginInfo;
-  beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-  commandBuffer.begin(beginInfo);
-  return commandBuffer;
-}
-
-void Application::endSingleTimeCommands(vk::CommandBuffer& commandBuffer) {
-  commandBuffer.end();
-
-  vk::SubmitInfo submitInfo;
-  submitInfo.setCommandBuffers(commandBuffer);
-
-  m_graphicsQueue.submit(submitInfo, nullptr);
-  m_graphicsQueue.waitIdle();
-
-  m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }
 
 vk::ImageView Application::createImageView(
-    vk::Image image, vk::Format format, vk::ImageAspectFlagBits aspectFlags
+    vk::Image image,
+    vk::Format format,
+    vk::ImageAspectFlagBits aspectFlags,
+    uint32_t mipLevels
 ) {
   vk::ImageViewCreateInfo viewInfo;
   viewInfo.image = image;
@@ -1313,7 +1311,7 @@ vk::ImageView Application::createImageView(
   viewInfo.format = format;
   viewInfo.subresourceRange.aspectMask = aspectFlags;
   viewInfo.subresourceRange.baseMipLevel = 0;
-  viewInfo.subresourceRange.levelCount = 1;
+  viewInfo.subresourceRange.levelCount = mipLevels;
   viewInfo.subresourceRange.baseArrayLayer = 0;
   viewInfo.subresourceRange.layerCount = 1;
 
@@ -1350,4 +1348,8 @@ vk::Format Application::findDepthFormat() {
       vk::ImageTiling::eOptimal,
       vk::FormatFeatureFlagBits::eDepthStencilAttachment
   );
+}
+
+SingleTimeCommand Application::createSingleTimeCommand() {
+  return SingleTimeCommand(m_device, m_graphicsQueue, m_commandPool);
 }

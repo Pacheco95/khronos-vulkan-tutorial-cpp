@@ -1,4 +1,4 @@
-# Linux ❘ Texture mapping ❘ Depth buffering
+# Linux ❘ Depth buffering
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 

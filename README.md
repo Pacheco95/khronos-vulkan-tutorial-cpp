@@ -59,3 +59,4 @@ and current step.
     * [Combined image sampler](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/05-texture-mapping/03-combined-image-sampler)
 * [Depth buffering](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)
 * [Loading models](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models) 🐞
+* [Generating Mipmaps](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/08-generating-mipmaps)

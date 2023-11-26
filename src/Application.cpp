@@ -1142,14 +1142,13 @@ void Application::copyBuffer(
     vk::Buffer& dstBuffer,
     const vk::DeviceSize& size
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer commandBuffer = singleTimeCommand.begin();
 
   vk::BufferCopy copyRegion;
   copyRegion.size = size;
 
   commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
-
-  endSingleTimeCommands(commandBuffer);
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage) {
@@ -1227,7 +1226,8 @@ void Application::transitionImageLayout(
     vk::ImageLayout newLayout,
     uint32_t mipLevels
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer& commandBuffer = singleTimeCommand.begin();
 
   vk::ImageMemoryBarrier barrier;
   barrier.oldLayout = oldLayout;
@@ -1271,14 +1271,13 @@ void Application::transitionImageLayout(
       1,
       &barrier
   );
-
-  endSingleTimeCommands(commandBuffer);
 }
 
 void Application::copyBufferToImage(
     vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height
 ) {
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer commandBuffer = singleTimeCommand.begin();
 
   vk::BufferImageCopy region;
   region.bufferOffset = 0;
@@ -1294,36 +1293,6 @@ void Application::copyBufferToImage(
   commandBuffer.copyBufferToImage(
       buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region
   );
-
-  endSingleTimeCommands(commandBuffer);
-}
-
-vk::CommandBuffer Application::beginSingleTimeCommands() {
-  vk::CommandBufferAllocateInfo allocInfo;
-  allocInfo.level = vk::CommandBufferLevel::ePrimary;
-  allocInfo.commandPool = m_commandPool;
-  allocInfo.commandBufferCount = 1;
-
-  vk::CommandBuffer commandBuffer;
-  commandBuffer = m_device.allocateCommandBuffers(allocInfo)[0];
-
-  vk::CommandBufferBeginInfo beginInfo;
-  beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-  commandBuffer.begin(beginInfo);
-  return commandBuffer;
-}
-
-void Application::endSingleTimeCommands(vk::CommandBuffer& commandBuffer) {
-  commandBuffer.end();
-
-  vk::SubmitInfo submitInfo;
-  submitInfo.setCommandBuffers(commandBuffer);
-
-  m_graphicsQueue.submit(submitInfo, nullptr);
-  m_graphicsQueue.waitIdle();
-
-  m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }
 
 vk::ImageView Application::createImageView(
@@ -1394,7 +1363,8 @@ void Application::generateMipmaps(
     );
   }
 
-  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+  auto singleTimeCommand = createSingleTimeCommand();
+  vk::CommandBuffer commandBuffer = singleTimeCommand.begin();
 
   vk::ImageMemoryBarrier barrier{};
   barrier.image = image;
@@ -1479,6 +1449,8 @@ void Application::generateMipmaps(
       nullptr,
       barrier
   );
+}
 
-  endSingleTimeCommands(commandBuffer);
+SingleTimeCommand Application::createSingleTimeCommand() {
+  return SingleTimeCommand(m_device, m_graphicsQueue, m_commandPool);
 }

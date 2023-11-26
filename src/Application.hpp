@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "SingleTimeCommand.hpp"
 #include "Vertex.hpp"
 #include "Window.hpp"
 
@@ -190,10 +191,6 @@ class Application {
       vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height
   );
 
-  vk::CommandBuffer beginSingleTimeCommands();
-
-  void endSingleTimeCommands(vk::CommandBuffer& commandBuffer);
-
   vk::ImageView createImageView(
       vk::Image image,
       vk::Format format,
@@ -216,4 +213,6 @@ class Application {
       int32_t texHeight,
       uint32_t mipLevels
   );
+
+  SingleTimeCommand createSingleTimeCommand();
 };

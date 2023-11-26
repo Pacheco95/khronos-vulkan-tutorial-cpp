@@ -348,10 +348,9 @@ void Application::cleanupSwapChain() {
   m_device.destroy(m_depthImage);
   m_device.free(m_depthImageMemory);
 
-  vkDestroyImageView(m_device, colorImageView, nullptr);
-  vkDestroyImage(m_device, colorImage, nullptr);
-  vkFreeMemory(m_device, colorImageMemory, nullptr);
-
+  m_device.destroy(m_colorImageView);
+  m_device.destroy(m_colorImage);
+  m_device.free(m_colorImageMemory);
 
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
@@ -400,15 +399,16 @@ void Application::createRenderPass() {
           .setInitialLayout(vk::ImageLayout::eUndefined)
           .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-  vk::AttachmentDescription colorAttachmentResolve{};
-  colorAttachmentResolve.format = m_swapChainImageFormat;
-  colorAttachmentResolve.samples = vk::SampleCountFlagBits::e1;
-  colorAttachmentResolve.loadOp = vk::AttachmentLoadOp::eDontCare;
-  colorAttachmentResolve.storeOp = vk::AttachmentStoreOp::eStore;
-  colorAttachmentResolve.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-  colorAttachmentResolve.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-  colorAttachmentResolve.initialLayout = vk::ImageLayout::eUndefined;
-  colorAttachmentResolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+  const auto colorAttachmentResolve =
+      vk::AttachmentDescription()
+          .setFormat(m_swapChainImageFormat)
+          .setSamples(vk::SampleCountFlagBits::e1)
+          .setLoadOp(vk::AttachmentLoadOp::eDontCare)
+          .setStoreOp(vk::AttachmentStoreOp::eStore)
+          .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+          .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+          .setInitialLayout(vk::ImageLayout::eUndefined)
+          .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
 
   const auto colorAttachmentRef =
@@ -629,12 +629,12 @@ void Application::createColorResources() {
       vk::ImageUsageFlagBits::eTransientAttachment |
           vk::ImageUsageFlagBits::eColorAttachment,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
-      colorImage,
-      colorImageMemory
+      m_colorImage,
+      m_colorImageMemory
   );
 
-  colorImageView = createImageView(
-      colorImage, m_swapChainImageFormat, vk::ImageAspectFlagBits::eColor, 1
+  m_colorImageView = createImageView(
+      m_colorImage, m_swapChainImageFormat, vk::ImageAspectFlagBits::eColor, 1
   );
 }
 
@@ -664,7 +664,7 @@ void Application::createFrameBuffers() {
 
   for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
     std::array attachments = {
-        colorImageView, m_depthImageView, m_swapChainImageViews[i]};
+        m_colorImageView, m_depthImageView, m_swapChainImageViews[i]};
 
     const auto framebufferInfo =
         vk::FramebufferCreateInfo()
@@ -1402,4 +1402,29 @@ vk::Format Application::findDepthFormat() {
 
 SingleTimeCommand Application::createSingleTimeCommand() {
   return SingleTimeCommand(m_device, m_graphicsQueue, m_commandPool);
+}
+
+vk::SampleCountFlagBits Application::getMaxUsableSampleCount() {
+  const auto physicalDeviceProperties = m_physicalDevice.getProperties();
+
+  const vk::SampleCountFlags counts =
+      physicalDeviceProperties.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+  const auto rankedCandidates = {
+      vk::SampleCountFlagBits::e64,
+      vk::SampleCountFlagBits::e32,
+      vk::SampleCountFlagBits::e16,
+      vk::SampleCountFlagBits::e8,
+      vk::SampleCountFlagBits::e4,
+      vk::SampleCountFlagBits::e2,
+  };
+
+  for (const auto& candidate : rankedCandidates) {
+    if (counts & candidate) {
+      return candidate;
+    }
+  }
+
+  return vk::SampleCountFlagBits::e1;
 }

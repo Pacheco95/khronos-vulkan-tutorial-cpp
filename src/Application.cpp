@@ -55,6 +55,7 @@ void Application::initVulkan() {
   createDescriptorSetLayout();
   createGraphicsPipeline();
   createCommandPool();
+  createColorResources();
   createDepthResources();
   createFrameBuffers();
   createTextureImage();
@@ -254,6 +255,7 @@ void Application::pickPhysicalDevice() {
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       m_physicalDevice = device;
+      msaaSamples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -334,6 +336,7 @@ void Application::recreateSwapChain() {
 
   createSwapChain();
   createImageViews();
+  createColorResources();
   createDepthResources();
   createFrameBuffers();
 }
@@ -344,6 +347,10 @@ void Application::cleanupSwapChain() {
   m_device.destroy(m_depthImageView);
   m_device.destroy(m_depthImage);
   m_device.free(m_depthImageMemory);
+
+  m_device.destroy(m_colorImageView);
+  m_device.destroy(m_colorImage);
+  m_device.free(m_colorImageMemory);
 
   for (const auto& frameBuffer : m_swapChainFrameBuffers) {
     m_device.destroy(frameBuffer);
@@ -373,24 +380,35 @@ void Application::createRenderPass() {
   const auto colorAttachment =
       vk::AttachmentDescription()
           .setFormat(m_swapChainImageFormat)
-          .setSamples(vk::SampleCountFlagBits::e1)
+          .setSamples(msaaSamples)
           .setLoadOp(vk::AttachmentLoadOp::eClear)
           .setStoreOp(vk::AttachmentStoreOp::eStore)
           .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
           .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
           .setInitialLayout(vk::ImageLayout::eUndefined)
-          .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+          .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
   const auto depthAttachment =
       vk::AttachmentDescription()
           .setFormat(findDepthFormat())
-          .setSamples(vk::SampleCountFlagBits::e1)
+          .setSamples(msaaSamples)
           .setLoadOp(vk::AttachmentLoadOp::eClear)
           .setStoreOp(vk::AttachmentStoreOp::eDontCare)
           .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
           .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
           .setInitialLayout(vk::ImageLayout::eUndefined)
           .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+  const auto colorAttachmentResolve =
+      vk::AttachmentDescription()
+          .setFormat(m_swapChainImageFormat)
+          .setSamples(vk::SampleCountFlagBits::e1)
+          .setLoadOp(vk::AttachmentLoadOp::eDontCare)
+          .setStoreOp(vk::AttachmentStoreOp::eStore)
+          .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+          .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+          .setInitialLayout(vk::ImageLayout::eUndefined)
+          .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
 
   const auto colorAttachmentRef =
@@ -403,12 +421,16 @@ void Application::createRenderPass() {
           vk::ImageLayout::eDepthStencilAttachmentOptimal
       );
 
+  vk::AttachmentReference colorAttachmentResolveRef{};
+  colorAttachmentResolveRef.attachment = 2;
+  colorAttachmentResolveRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
   const auto subPass =
       vk::SubpassDescription()
           .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
           .setColorAttachments(colorAttachmentRef)
-          .setPDepthStencilAttachment(&depthAttachmentRef);
+          .setPDepthStencilAttachment(&depthAttachmentRef)
+          .setResolveAttachments(colorAttachmentResolveRef);
 
   const auto dependency =
       vk::SubpassDependency()
@@ -418,7 +440,10 @@ void Application::createRenderPass() {
               vk::PipelineStageFlagBits::eColorAttachmentOutput |
               vk::PipelineStageFlagBits::eLateFragmentTests
           )
-          .setSrcAccessMask(vk::AccessFlagBits::eDepthStencilAttachmentWrite)
+          .setSrcAccessMask(
+              vk::AccessFlagBits::eColorAttachmentWrite |
+              vk::AccessFlagBits::eDepthStencilAttachmentWrite
+          )
           .setDstStageMask(
               vk::PipelineStageFlagBits::eColorAttachmentOutput |
               vk::PipelineStageFlagBits::eEarlyFragmentTests
@@ -428,7 +453,8 @@ void Application::createRenderPass() {
               vk::AccessFlagBits::eDepthStencilAttachmentWrite
           );
 
-  const auto attachments = {colorAttachment, depthAttachment};
+  const auto attachments = {
+      colorAttachment, depthAttachment, colorAttachmentResolve};
 
   const auto renderPassInfo =
       vk::RenderPassCreateInfo()
@@ -516,7 +542,7 @@ void Application::createGraphicsPipeline() {
   const auto multisampling =
       vk::PipelineMultisampleStateCreateInfo()
           .setSampleShadingEnable(vk::False)
-          .setRasterizationSamples(vk::SampleCountFlagBits::e1);
+          .setRasterizationSamples(msaaSamples);
 
   const auto depthStencil =
       vk::PipelineDepthStencilStateCreateInfo()
@@ -592,6 +618,26 @@ void Application::createCommandPool() {
   m_commandPool = m_device.createCommandPool(poolInfo);
 }
 
+void Application::createColorResources() {
+  createImage(
+      m_swapChainExtent.width,
+      m_swapChainExtent.height,
+      1,
+      msaaSamples,
+      m_swapChainImageFormat,
+      vk::ImageTiling::eOptimal,
+      vk::ImageUsageFlagBits::eTransientAttachment |
+          vk::ImageUsageFlagBits::eColorAttachment,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_colorImage,
+      m_colorImageMemory
+  );
+
+  m_colorImageView = createImageView(
+      m_colorImage, m_swapChainImageFormat, vk::ImageAspectFlagBits::eColor, 1
+  );
+}
+
 void Application::createDepthResources() {
   vk::Format depthFormat = findDepthFormat();
 
@@ -599,6 +645,7 @@ void Application::createDepthResources() {
       m_swapChainExtent.width,
       m_swapChainExtent.height,
       1,
+      msaaSamples,
       depthFormat,
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eDepthStencilAttachment,
@@ -616,7 +663,8 @@ void Application::createFrameBuffers() {
   m_swapChainFrameBuffers.resize(m_swapChainImageViews.size());
 
   for (size_t i = 0; i < m_swapChainImageViews.size(); ++i) {
-    std::array attachments = {m_swapChainImageViews[i], m_depthImageView};
+    std::array attachments = {
+        m_colorImageView, m_depthImageView, m_swapChainImageViews[i]};
 
     const auto framebufferInfo =
         vk::FramebufferCreateInfo()
@@ -677,6 +725,7 @@ void Application::createTextureImage() {
       texWidth,
       texHeight,
       m_mipLevels,
+      vk::SampleCountFlagBits::e1,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eTransferSrc |
@@ -1189,6 +1238,7 @@ void Application::createImage(
     uint32_t width,
     uint32_t height,
     uint32_t mipLevels,
+    vk::SampleCountFlagBits numSamples,
     vk::Format format,
     vk::ImageTiling tiling,
     vk::ImageUsageFlags usage,
@@ -1206,7 +1256,7 @@ void Application::createImage(
           .setTiling(tiling)
           .setInitialLayout(vk::ImageLayout::eUndefined)
           .setUsage(usage)
-          .setSamples(vk::SampleCountFlagBits::e1)
+          .setSamples(numSamples)
           .setSharingMode(vk::SharingMode::eExclusive);
 
   image = m_device.createImage(imageInfo);
@@ -1352,4 +1402,29 @@ vk::Format Application::findDepthFormat() {
 
 SingleTimeCommand Application::createSingleTimeCommand() {
   return SingleTimeCommand(m_device, m_graphicsQueue, m_commandPool);
+}
+
+vk::SampleCountFlagBits Application::getMaxUsableSampleCount() {
+  const auto physicalDeviceProperties = m_physicalDevice.getProperties();
+
+  const vk::SampleCountFlags counts =
+      physicalDeviceProperties.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+  const auto rankedCandidates = {
+      vk::SampleCountFlagBits::e64,
+      vk::SampleCountFlagBits::e32,
+      vk::SampleCountFlagBits::e16,
+      vk::SampleCountFlagBits::e8,
+      vk::SampleCountFlagBits::e4,
+      vk::SampleCountFlagBits::e2,
+  };
+
+  for (const auto& candidate : rankedCandidates) {
+    if (counts & candidate) {
+      return candidate;
+    }
+  }
+
+  return vk::SampleCountFlagBits::e1;
 }

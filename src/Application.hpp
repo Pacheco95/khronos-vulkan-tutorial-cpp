@@ -37,6 +37,7 @@ class Application {
   vk::DebugUtilsMessengerEXT m_debugMessenger;
   vk::SurfaceKHR m_surface;
   vk::PhysicalDevice m_physicalDevice;
+  vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1;
   vk::Device m_device;
   vk::Queue m_graphicsQueue;  // Destroyed by logical device
   vk::Queue m_presentQueue;   // Destroyed by logical device
@@ -51,6 +52,10 @@ class Application {
   vk::Pipeline m_graphicsPipeline;
   std::vector<vk::Framebuffer> m_swapChainFrameBuffers;
   vk::CommandPool m_commandPool;
+
+  vk::Image m_colorImage;
+  vk::DeviceMemory m_colorImageMemory;
+  vk::ImageView m_colorImageView;
 
   vk::Image m_depthImage;
   vk::DeviceMemory m_depthImageMemory;
@@ -103,6 +108,7 @@ class Application {
   void createDescriptorSetLayout();
   void createGraphicsPipeline();
   void createCommandPool();
+  void createColorResources();
   void createDepthResources();
   void createFrameBuffers();
   void createTextureImage();
@@ -171,6 +177,7 @@ class Application {
       uint32_t width,
       uint32_t height,
       uint32_t mipLevels,
+      vk::SampleCountFlagBits numSamples,
       vk::Format format,
       vk::ImageTiling tiling,
       vk::ImageUsageFlags usage,
@@ -207,4 +214,6 @@ class Application {
   vk::Format findDepthFormat();
 
   SingleTimeCommand createSingleTimeCommand();
+
+  vk::SampleCountFlagBits getMaxUsableSampleCount();
 };

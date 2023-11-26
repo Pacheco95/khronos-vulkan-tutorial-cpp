@@ -630,6 +630,10 @@ void Application::createFrameBuffers() {
 }
 
 void Application::createTextureImage() {
+  using std::floor;
+  using std::log2;
+  using std::max;
+
   int texWidth, texHeight, texChannels;
 
   stbi_uc* pixels = stbi_load(
@@ -640,10 +644,8 @@ void Application::createTextureImage() {
       STBI_rgb_alpha
   );
 
-  mipLevels =
-      static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))
-      ) +
-      1;
+  m_mipLevels =
+      static_cast<uint32_t>(floor(log2(max(texWidth, texHeight)))) + 1;
 
 
   vk::DeviceSize imageSize = texWidth * texHeight * 4;
@@ -673,7 +675,7 @@ void Application::createTextureImage() {
   createImage(
       texWidth,
       texHeight,
-      mipLevels,
+      m_mipLevels,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eTransferSrc |
@@ -689,7 +691,7 @@ void Application::createTextureImage() {
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageLayout::eUndefined,
       vk::ImageLayout::eTransferDstOptimal,
-      mipLevels
+      m_mipLevels
   );
 
   copyBufferToImage(
@@ -700,7 +702,11 @@ void Application::createTextureImage() {
   );
 
   generateMipmaps(
-      m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
+      m_textureImage,
+      vk::Format::eR8G8B8A8Srgb,
+      texWidth,
+      texHeight,
+      m_mipLevels
   );
 
   m_device.destroy(stagingBuffer);
@@ -712,7 +718,7 @@ void Application::createTextureImageView() {
       m_textureImage,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageAspectFlagBits::eColor,
-      mipLevels
+      m_mipLevels
   );
 }
 
@@ -733,7 +739,7 @@ void Application::createTextureSampler() {
   samplerInfo.compareOp = vk::CompareOp::eAlways;
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-  samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+  samplerInfo.maxLod = vk::LodClampNone;
 
   m_textureSampler = m_device.createSampler(samplerInfo);
 }

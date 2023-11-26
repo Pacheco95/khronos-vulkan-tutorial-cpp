@@ -1,4 +1,4 @@
-# Linux ❘ Texture mapping ❘ Loading models
+# Linux ❘ Loading models
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 

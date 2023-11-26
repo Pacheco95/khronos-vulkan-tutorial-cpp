@@ -1,4 +1,4 @@
-# Linux ❘ Loading models
+# Linux ❘ Generating Mipmaps
 
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 

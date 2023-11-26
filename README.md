@@ -4,12 +4,14 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 
 # Adjustments
 
+- Refactored original `getMaxUsableSampleCount()` to use a loop instead of multiple if statements.
+
 # Navigation
 
 [🌐 Original tutorial](
 https://docs.vulkan.org/tutorial/latest/10_Multisampling.html)
 
-[⏮ Loading models](
+[⏮ Generating mipmaps](
 https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/08-generating-mipmaps)
 
 [🔄 Diff from previous step](

@@ -3,6 +3,8 @@
 Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux-summary).
 
 # Adjustments
+- Extract `MipmapGenerator` class
+- Extract `SingleTimeCommand` class
 
 # Navigation
 

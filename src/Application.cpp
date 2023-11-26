@@ -362,7 +362,8 @@ void Application::createImageViews() {
     m_swapChainImageViews[i] = createImageView(
         m_swapChainImages[i],
         m_swapChainImageFormat,
-        vk::ImageAspectFlagBits::eColor
+        vk::ImageAspectFlagBits::eColor,
+        1
     );
   }
 }
@@ -596,6 +597,7 @@ void Application::createDepthResources() {
   createImage(
       m_swapChainExtent.width,
       m_swapChainExtent.height,
+      1,
       depthFormat,
       vk::ImageTiling::eOptimal,
       vk::ImageUsageFlagBits::eDepthStencilAttachment,
@@ -605,7 +607,7 @@ void Application::createDepthResources() {
   );
 
   m_depthImageView = createImageView(
-      m_depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth
+      m_depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth, 1
   );
 }
 
@@ -638,6 +640,12 @@ void Application::createTextureImage() {
       STBI_rgb_alpha
   );
 
+  mipLevels =
+      static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))
+      ) +
+      1;
+
+
   vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
   if (!pixels) {
@@ -665,9 +673,12 @@ void Application::createTextureImage() {
   createImage(
       texWidth,
       texHeight,
+      mipLevels,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageTiling::eOptimal,
-      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+      vk::ImageUsageFlagBits::eTransferSrc |
+          vk::ImageUsageFlagBits::eTransferDst |
+          vk::ImageUsageFlagBits::eSampled,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_textureImage,
       m_textureImageMemory
@@ -677,7 +688,8 @@ void Application::createTextureImage() {
       m_textureImage,
       vk::Format::eR8G8B8A8Srgb,
       vk::ImageLayout::eUndefined,
-      vk::ImageLayout::eTransferDstOptimal
+      vk::ImageLayout::eTransferDstOptimal,
+      mipLevels
   );
 
   copyBufferToImage(
@@ -687,11 +699,8 @@ void Application::createTextureImage() {
       static_cast<uint32_t>(texHeight)
   );
 
-  transitionImageLayout(
-      m_textureImage,
-      vk::Format::eR8G8B8A8Srgb,
-      vk::ImageLayout::eTransferDstOptimal,
-      vk::ImageLayout::eShaderReadOnlyOptimal
+  generateMipmaps(
+      m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
   );
 
   m_device.destroy(stagingBuffer);
@@ -700,7 +709,10 @@ void Application::createTextureImage() {
 
 void Application::createTextureImageView() {
   m_textureImageView = createImageView(
-      m_textureImage, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor
+      m_textureImage,
+      vk::Format::eR8G8B8A8Srgb,
+      vk::ImageAspectFlagBits::eColor,
+      mipLevels
   );
 }
 
@@ -720,6 +732,8 @@ void Application::createTextureSampler() {
   samplerInfo.compareEnable = vk::False;
   samplerInfo.compareOp = vk::CompareOp::eAlways;
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+  samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+  samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 
   m_textureSampler = m_device.createSampler(samplerInfo);
 }
@@ -1165,6 +1179,7 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 void Application::createImage(
     uint32_t width,
     uint32_t height,
+    uint32_t mipLevels,
     vk::Format format,
     vk::ImageTiling tiling,
     vk::ImageUsageFlags usage,
@@ -1176,7 +1191,7 @@ void Application::createImage(
       vk::ImageCreateInfo()
           .setImageType(vk::ImageType::e2D)
           .setExtent({width, height, 1})
-          .setMipLevels(1)
+          .setMipLevels(mipLevels)
           .setArrayLayers(1)
           .setFormat(format)
           .setTiling(tiling)
@@ -1203,7 +1218,8 @@ void Application::transitionImageLayout(
     vk::Image image,
     vk::Format format,
     vk::ImageLayout oldLayout,
-    vk::ImageLayout newLayout
+    vk::ImageLayout newLayout,
+    uint32_t mipLevels
 ) {
   vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -1215,7 +1231,7 @@ void Application::transitionImageLayout(
   barrier.image = image;
   barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
   barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.levelCount = mipLevels;
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = 1;
 
@@ -1305,7 +1321,10 @@ void Application::endSingleTimeCommands(vk::CommandBuffer& commandBuffer) {
 }
 
 vk::ImageView Application::createImageView(
-    vk::Image image, vk::Format format, vk::ImageAspectFlagBits aspectFlags
+    vk::Image image,
+    vk::Format format,
+    vk::ImageAspectFlagBits aspectFlags,
+    uint32_t mipLevels
 ) {
   vk::ImageViewCreateInfo viewInfo;
   viewInfo.image = image;
@@ -1313,7 +1332,7 @@ vk::ImageView Application::createImageView(
   viewInfo.format = format;
   viewInfo.subresourceRange.aspectMask = aspectFlags;
   viewInfo.subresourceRange.baseMipLevel = 0;
-  viewInfo.subresourceRange.levelCount = 1;
+  viewInfo.subresourceRange.levelCount = mipLevels;
   viewInfo.subresourceRange.baseArrayLayer = 0;
   viewInfo.subresourceRange.layerCount = 1;
 

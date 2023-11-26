@@ -25,6 +25,8 @@ set(SOURCES
         src/ModelLoader.hpp
         src/SingleTimeCommand.cpp
         src/SingleTimeCommand.hpp
+        src/MipmapGenerator.cpp
+        src/MipmapGenerator.hpp
 )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")

@@ -61,3 +61,5 @@ and current step.
 * [Loading models](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models) 🐞
 * [Generating Mipmaps](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/08-generating-mipmaps)
 * [Multisampling](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/09-multisampling)
+* Extra
+    * [Dependency organization](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/extra/01-dependency-organization)

@@ -60,3 +60,4 @@ and current step.
 * [Depth buffering](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/06-depth-buffering)
 * [Loading models](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/07-loading-models) 🐞
 * [Generating Mipmaps](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/08-generating-mipmaps)
+* [Multisampling](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/09-multisampling)

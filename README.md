@@ -9,6 +9,10 @@ Summary [here](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/lin
 > The bug was introduced
 > here:
 > https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/commit/d7ddbfad363e384a8925b0cb4efb5b84297acbcf#r133490971
+>
+> Fixed another early bug forcing the application to crash after window resizes.
+> See https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/commit/6df9f55ab4346b9347ecbab2570be889f0d8eee2#diff-012cc4ba952523f9f987b2af14b664e01767b27560ee21dc711cc63ce31b3849R122
+> and this comment https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/commit/6df9f55ab4346b9347ecbab2570be889f0d8eee2#r133495542
 
 - Moved mesh loading logic to `ModelLoader` class.
 - Added missing class member variables `m_` prefix.

@@ -134,15 +134,18 @@ void Application::drawFrame() {
           .setSwapchains(m_swapChain)
           .setImageIndices(imageIndex);
 
-  result = m_presentQueue.presentKHR(presentInfo);
+
+  result = vk::Result(vkQueuePresentKHR(
+      m_presentQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
+  ));
 
   if (result == vk::Result::eErrorOutOfDateKHR ||
       result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
     m_framebufferResized = false;
     recreateSwapChain();
+  } else {
+    vk::resultCheck(result, "Failed to present swap chain image");
   }
-
-  vk::resultCheck(result, "Failed to present swap chain image");
 
   m_currentFrame = (m_currentFrame + 1) % Config::MAX_FRAMES_IN_FLIGHT;
 }
@@ -330,6 +333,7 @@ void Application::recreateSwapChain() {
 
   createSwapChain();
   createImageViews();
+  createDepthResources();
   createFrameBuffers();
 }
 

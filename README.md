@@ -21,6 +21,7 @@ and current step.
 > probably pick the wrong physical device.
 > If you don't fix this bug early, then it may hinder your experience through the tutorial until you reach the chapter
 > where the bug was fixed.
+> This step also fixes another bug forcing application to crash on window resize.
 
 * [Development environment](https://github.com/Pacheco95/khronos-vulkan-tutorial-cpp/tree/linux/01-development-environment)
 * Setup
